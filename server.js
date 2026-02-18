@@ -26,7 +26,10 @@ const dbConfig = {
     database: process.env.DB_NAME || 'whatsapp_api',
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    connectTimeout: 5000,        // ← NUEVO: timeout de 5 segundos
+    acquireTimeout: 5000,        // ← NUEVO
+    timeout: 5000                // ← NUEVO
 };
 
 // Pool de conexiones
@@ -700,22 +703,31 @@ app.use((req, res) => {
 
 // ========== INICIAR SERVIDOR ==========
 
+// ========== INICIAR SERVIDOR ==========
+
 app.listen(PORT, '0.0.0.0', async () => {
     console.log('\n╔════════════════════════════════════════════╗');
     console.log('║  🚀 WHATSAPP API MULTI-TENANT + MySQL     ║');
     console.log('╚════════════════════════════════════════════╝\n');
     console.log(`📱 Login Portal: http://localhost:${PORT}`);
     console.log(`🔌 API REST:     http://localhost:${PORT}/api`);
-    console.log(`🗄️  MySQL:       Conectado\n`);
+    console.log(`🗄️  MySQL:       Conectando...\n`);
     
-    // Test de conexión a BD
-    try {
-        await pool.execute('SELECT 1');
-        console.log('✅ Conexión a MySQL exitosa\n');
-    } catch (error) {
-        console.error('❌ Error conectando a MySQL:', error.message);
-        console.error('   Verifica la configuración en dbConfig\n');
-    }
+    // Test de conexión a BD con timeout
+    const testConnection = async () => {
+        try {
+            const start = Date.now();
+            await pool.execute('SELECT 1');
+            const elapsed = Date.now() - start;
+            console.log(`✅ Conexión a MySQL exitosa (${elapsed}ms)\n`);
+        } catch (error) {
+            console.error('❌ Error conectando a MySQL:', error.message);
+            console.error('   Verifica la configuración en .env\n');
+        }
+    };
+    
+    // Ejecutar test sin bloquear el servidor
+    testConnection();
 });
 
 process.on('SIGINT', async () => {
