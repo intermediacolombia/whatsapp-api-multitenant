@@ -27,11 +27,11 @@ class WhatsAppConnection {
         
         try {
             // Crear cliente con autenticación local
-            tthis.client = new Client({
-    authStrategy: new LocalAuth({
-        dataPath: this.authFolder
-    }),
-    puppeteer: {
+            this.client = new Client({
+                authStrategy: new LocalAuth({
+                    dataPath: this.authFolder  // ← Usar carpeta personalizada
+                }),
+                 puppeteer: {
         headless: true,
         executablePath: '/usr/bin/chromium',
         args: [
@@ -44,6 +44,7 @@ class WhatsAppConnection {
             '--disable-gpu'
         ]
     }
+            });
             
             // ========== EVENTOS ==========
             
