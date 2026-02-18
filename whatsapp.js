@@ -16,15 +16,20 @@ const pino = require('pino');
 const fs = require('fs');
 
 class WhatsAppConnection {
-    constructor(clientId) {
-        this.clientId = clientId;
-        this.authFolder = `./auth/${clientId}`;
-        this.sock = null;
-        this.qrCodeImage = null;
-        this.isConnected = false;
-        this.isInitializing = false;
-        this.phoneNumber = null;
+    constructor(clientId = 'default') {
+    this.clientId = clientId;
+    this.authFolder = `./auth/${clientId}`;
+    this.sock = null;
+    this.qrImage = null;
+    this.isConnected = false;
+}
+
+getPhoneNumber() {
+    if (this.sock && this.sock.user && this.sock.user.id) {
+        return this.sock.user.id.split(':')[0].split('@')[0];
     }
+    return null;
+}
 
     async initialize() {
         if (this.isInitializing) return;

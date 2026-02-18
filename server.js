@@ -19,7 +19,7 @@ const upload = multer();
 
 // ========== CONFIGURACIÓN DE BASE DE DATOS ==========
 const dbConfig = {
-    host: process.env.DB_HOST || 'localhost',
+    host: process.env.DB_HOST || '127.0.0.1',
     port: process.env.DB_PORT || 3306,
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD,
@@ -27,9 +27,7 @@ const dbConfig = {
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-    connectTimeout: 5000,        // ← NUEVO: timeout de 5 segundos
-    acquireTimeout: 5000,        // ← NUEVO
-    timeout: 5000                // ← NUEVO
+    connectTimeout: 5000  // ← Solo este es válido
 };
 
 // Pool de conexiones
@@ -124,23 +122,25 @@ async function getWhatsAppInstance(clientId) {
         return whatsappInstances[clientId];
     }
     
-    const client = await pool.execute(
+    const [rows] = await pool.execute(
         'SELECT * FROM clients WHERE client_id = ?',
         [clientId]
     );
     
-    if (client[0].length === 0) {
+    if (rows.length === 0) {
         throw new Error('Cliente no encontrado');
     }
     
-    const clientData = client[0][0];
-    const wa = new WhatsAppConnection();
+    const clientData = rows[0];
+    const wa = new WhatsAppConnection(clientId); // ← Pasamos clientId
     wa.authFolder = `./auth/${clientId}`;
     
     whatsappInstances[clientId] = {
         instance: wa,
         isInitialized: false,
-        clientName: clientData.name
+        clientName: clientData.name,
+        connected: false,        // ← NUEVO: caché de estado
+        phoneNumber: null        // ← NUEVO: caché de número
     };
     
     return whatsappInstances[clientId];
@@ -150,15 +150,38 @@ async function ensureInitialized(clientId) {
     const waData = await getWhatsAppInstance(clientId);
 
     // Si ya está inicializado y conectado, retorna rápido
-    if (waData.isInitialized && waData.instance.getStatus()) {
+    if (waData.isInitialized && waData.connected) {
         return waData.instance;
     }
 
     if (!waData.isInitialized) {
         console.log(`🔌 Inicializando WhatsApp para: ${waData.clientName}`);
-        waData.isInitialized = true; // evitar doble inicialización
+        waData.isInitialized = true;
         
-        await waData.instance.initialize();
+        const wa = waData.instance;
+        
+        // Escuchar eventos de conexión para guardar en CACHÉ
+        wa.on('connection.update', async (update) => {
+            if (update.connection === 'open') {
+                const phone = wa.getPhoneNumber();
+                console.log(`✅ [${clientId}] Conectado como: ${phone}`);
+                
+                // Guardamos en memoria para acceso instantáneo
+                waData.connected = true;
+                waData.phoneNumber = phone;
+                
+                // Actualizamos BD en segundo plano (sin bloquear)
+                updateWhatsAppStatus(clientId, true, phone).catch(console.error);
+                
+            } else if (update.connection === 'close') {
+                console.log(`❌ [${clientId}] Desconectado`);
+                waData.connected = false;
+                waData.phoneNumber = null;
+                updateWhatsAppStatus(clientId, false, null).catch(console.error);
+            }
+        });
+
+        await wa.initialize();
     }
 
     return waData.instance;
@@ -337,14 +360,14 @@ app.get('/api/admin/clients', async (req, res) => {
         // Obtener todos los clientes
         const [clients] = await pool.execute('SELECT * FROM clients ORDER BY created_at DESC');
         
-        // Mapear clientes con estado de WhatsApp y número de teléfono
+        // ✅ MAPEO INSTANTÁNEO CON CACHÉ
         const clientsWithStatus = clients.map(client => {
             const waData = whatsappInstances[client.client_id];
-            const conn = waData ? waData.instance : null;
             return {
                 ...client,
-                whatsapp_connected: conn ? conn.getStatus() : false,
-                phone_number: conn ? conn.getPhoneNumber() : null
+                // Usamos caché de memoria (instantáneo)
+                whatsapp_connected: waData ? (waData.connected || false) : client.whatsapp_connected,
+                phone_number: waData ? (waData.phoneNumber || null) : client.phone_number
             };
         });
         
@@ -581,13 +604,13 @@ app.get('/api/my-status', async (req, res) => {
     if (!client) return res.status(401).json({ error: 'No autorizado' });
 
     const waData = whatsappInstances[client.client_id];
-    const conn = waData ? waData.instance : null;
     
+    // ✅ RESPUESTA INSTANTÁNEA DESDE CACHÉ
     res.json({
         success: true,
-        connected: conn ? conn.getStatus() : false,
-        qr: conn ? conn.getQRImage() : null,
-        phone_number: conn ? conn.getPhoneNumber() : null
+        connected: waData ? (waData.connected || false) : client.whatsapp_connected,
+        qr: waData ? waData.instance.getQRImage() : null,
+        phone_number: waData ? (waData.phoneNumber || null) : client.phone_number
     });
 });
 
