@@ -1,130 +1,114 @@
 /**
- * WhatsApp Connection usando whatsapp-web.js
- * Mucho más estable que Baileys, sin error 515
+ * WhatsApp Connection OPTIMIZADO
+ * Rápido y eficiente para servidor
  */
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
 const QRCode = require('qrcode');
 
 class WhatsAppConnection {
-    constructor() {
+    constructor(clientId) {
+        this.clientId = clientId;
+        this.authFolder = `./auth/${clientId}`;
         this.client = null;
         this.qrCode = null;
         this.qrCodeImage = null;
         this.isConnected = false;
         this.isInitializing = false;
+        this.phoneNumber = null;
     }
     
     async initialize() {
         if (this.isInitializing) {
-            console.log('⏳ Ya se está inicializando...');
+            console.log(`⏳ [${this.clientId}] Ya se está inicializando...`);
             return;
         }
         
         this.isInitializing = true;
-        console.log('🚀 Iniciando conexión a WhatsApp...');
+        console.log(`🚀 [${this.clientId}] Iniciando WhatsApp...`);
         
         try {
-            // Crear cliente con autenticación local
+            // Cliente con configuración OPTIMIZADA
             this.client = new Client({
-    authStrategy: new LocalAuth({
-        dataPath: this.authFolder
-    }),
-    puppeteer: {
-        headless: true,
-        executablePath: '/usr/bin/chromium',
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-accelerated-2d-canvas',
-            '--no-first-run',
-            '--no-zygote',
-            '--disable-gpu'
-        ]
-    }
+                authStrategy: new LocalAuth({
+                    dataPath: this.authFolder,
+                    clientId: this.clientId
+                }),
+                puppeteer: {
+                    headless: true,
+                    executablePath: '/usr/bin/chromium',
+                    args: [
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--disable-accelerated-2d-canvas',
+                        '--no-first-run',
+                        '--no-zygote',
+                        '--single-process',
+                        '--disable-gpu',
+                        '--disable-extensions',
+                        '--disable-background-networking',
+                        '--disable-default-apps',
+                        '--disable-sync',
+                        '--disable-translate',
+                        '--mute-audio'
+                    ],
+                    timeout: 60000
+                },
+                webVersionCache: {
+                    type: 'remote',
+                    remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html'
+                }
             });
             
-            // ========== EVENTOS ==========
-            
-            // QR Code generado
-            this.client.on('qr', async (qr) => {
-                console.log('\n📱 ═══════════════════════════════════════');
-                console.log('   QR CODE GENERADO');
-                console.log('═══════════════════════════════════════\n');
-                
+            // QR Code (NO BLOQUEANTE)
+            this.client.on('qr', (qr) => {
+                console.log(`📱 [${this.clientId}] QR GENERADO`);
                 this.qrCode = qr;
                 
-                // Convertir a imagen base64
-                try {
-                    this.qrCodeImage = await QRCode.toDataURL(qr);
-                    console.log('✅ QR convertido a imagen base64');
-                } catch (error) {
-                    console.error('❌ Error generando imagen QR:', error);
-                }
-                
-                // Mostrar en terminal
-                qrcode.generate(qr, { small: true });
-                
-                console.log('\n📋 Instrucciones:');
-                console.log('1. Abre WhatsApp en tu teléfono');
-                console.log('2. Configuración → Dispositivos vinculados');
-                console.log('3. Vincular un dispositivo');
-                console.log('4. Escanea el QR\n');
+                // Generar imagen async
+                QRCode.toDataURL(qr).then(img => {
+                    this.qrCodeImage = img;
+                    console.log(`✅ [${this.clientId}] QR imagen lista`);
+                }).catch(() => {});
             });
             
-            // Autenticando
+            // Autenticado
             this.client.on('authenticated', () => {
-                console.log('🔐 Autenticado correctamente');
+                console.log(`🔐 [${this.clientId}] Autenticado`);
             });
             
             // Listo
             this.client.on('ready', () => {
-                console.log('\n✅ ═══════════════════════════════════════');
-                console.log('   WHATSAPP CONECTADO EXITOSAMENTE!');
-                console.log('═══════════════════════════════════════\n');
-                
+                console.log(`✅ [${this.clientId}] CONECTADO`);
                 this.isConnected = true;
                 this.qrCode = null;
                 this.qrCodeImage = null;
                 this.isInitializing = false;
-                
-                const info = this.client.info;
-                console.log(`👤 Usuario: ${info.pushname}`);
-                console.log(`📱 Número: ${info.wid.user}`);
-                console.log(`\n💡 Sistema listo para enviar mensajes\n`);
+                this.phoneNumber = this.client.info.wid.user;
             });
             
             // Desconectado
             this.client.on('disconnected', (reason) => {
-                console.log('❌ Desconectado:', reason);
+                console.log(`❌ [${this.clientId}] Desconectado:`, reason);
                 this.isConnected = false;
                 this.qrCode = null;
                 this.qrCodeImage = null;
                 this.isInitializing = false;
+                this.phoneNumber = null;
             });
             
-            // Error de autenticación
-            this.client.on('auth_failure', (msg) => {
-                console.error('❌ Error de autenticación:', msg);
+            // Error
+            this.client.on('auth_failure', () => {
+                console.error(`❌ [${this.clientId}] Error autenticación`);
                 this.isInitializing = false;
             });
             
-            // Mensaje recibido (opcional)
-            this.client.on('message', async (msg) => {
-                if (!msg.fromMe) {
-                    const contact = await msg.getContact();
-                    console.log(`📨 Mensaje de ${contact.pushname || contact.number}: ${msg.body.substring(0, 50)}...`);
-                }
-            });
-            
-            // Inicializar cliente
-            await this.client.initialize();
-            console.log('⏳ Esperando autenticación...');
+            // Inicializar (NO AWAIT - no bloquea)
+            this.client.initialize();
             
         } catch (error) {
-            console.error('\n❌ Error fatal:', error.message);
+            console.error(`❌ [${this.clientId}] Error:`, error.message);
             this.isInitializing = false;
             throw error;
         }
@@ -132,22 +116,17 @@ class WhatsAppConnection {
     
     async sendMessage(phone, message) {
         if (!this.isConnected) {
-            throw new Error('WhatsApp no está conectado');
+            throw new Error('WhatsApp no conectado');
         }
         
         try {
-            // Formatear número
             let chatId = phone.replace(/[^0-9]/g, '');
-            
-            // Agregar @c.us si no lo tiene
             if (!chatId.includes('@')) {
-                chatId = chatId + '@c.us';
+                chatId += '@c.us';
             }
             
-            // Enviar mensaje
             const result = await this.client.sendMessage(chatId, message);
-            
-            console.log(`✅ Mensaje enviado a ${phone}`);
+            console.log(`✅ [${this.clientId}] Mensaje a ${phone}`);
             
             return {
                 success: true,
@@ -157,49 +136,44 @@ class WhatsAppConnection {
             };
             
         } catch (error) {
-            console.error(`❌ Error enviando mensaje:`, error.message);
+            console.error(`❌ [${this.clientId}] Error:`, error.message);
             throw error;
         }
     }
     
-    async sendFile(phone, fileUrl, fileName = 'documento.pdf', caption = '') {
+    async sendFile(phone, fileUrl, caption = '') {
         if (!this.isConnected) {
-            throw new Error('WhatsApp no está conectado');
+            throw new Error('WhatsApp no conectado');
         }
         
         try {
             const { MessageMedia } = require('whatsapp-web.js');
             
-            // Formatear número
             let chatId = phone.replace(/[^0-9]/g, '');
             if (!chatId.includes('@')) {
-                chatId = chatId + '@c.us';
+                chatId += '@c.us';
             }
             
-            // Descargar archivo desde URL
             const media = await MessageMedia.fromUrl(fileUrl, {
                 unsafeMime: true
             });
             
-            // Enviar con nombre personalizado
             const result = await this.client.sendMessage(chatId, media, {
                 caption: caption || undefined,
-                sendMediaAsDocument: true,
-                filename: fileName  // ← ¡Nombre personalizado!
+                sendMediaAsDocument: true
             });
             
-            console.log(`✅ Archivo "${fileName}" enviado a ${phone}`);
+            console.log(`✅ [${this.clientId}] Archivo a ${phone}`);
             
             return {
                 success: true,
                 phone: phone,
-                fileName: fileName,
                 messageId: result.id.id,
                 timestamp: result.timestamp
             };
             
         } catch (error) {
-            console.error(`❌ Error enviando archivo:`, error.message);
+            console.error(`❌ [${this.clientId}] Error:`, error.message);
             throw error;
         }
     }
@@ -216,19 +190,22 @@ class WhatsAppConnection {
         return this.isConnected;
     }
     
+    getPhoneNumber() {
+        return this.phoneNumber;
+    }
+    
     async logout() {
         if (this.client) {
+            console.log(`👋 [${this.clientId}] Logout...`);
             await this.client.logout();
-            console.log('👋 Sesión cerrada');
             this.isConnected = false;
             this.qrCode = null;
             this.qrCodeImage = null;
+            this.phoneNumber = null;
             
-            // Limpiar carpeta auth
             const fs = require('fs');
-            const authPath = './auth';
-            if (fs.existsSync(authPath)) {
-                fs.rmSync(authPath, { recursive: true, force: true });
+            if (fs.existsSync(this.authFolder)) {
+                fs.rmSync(this.authFolder, { recursive: true, force: true });
             }
         }
     }
@@ -242,23 +219,3 @@ class WhatsAppConnection {
 }
 
 module.exports = WhatsAppConnection;
-
-// Prueba directa
-if (require.main === module) {
-    console.log('\n╔═══════════════════════════════════════════╗');
-    console.log('║   WHATSAPP API - WHATSAPP-WEB.JS          ║');
-    console.log('╚═══════════════════════════════════════════╝\n');
-    
-    const wa = new WhatsAppConnection();
-    
-    wa.initialize().catch(error => {
-        console.error('❌ Error fatal:', error);
-        process.exit(1);
-    });
-    
-    process.on('SIGINT', async () => {
-        console.log('\n\n🛑 Cerrando sistema...');
-        await wa.destroy();
-        process.exit(0);
-    });
-}
