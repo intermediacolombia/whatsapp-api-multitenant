@@ -37,6 +37,16 @@ source .env
 # Instalar dependencias
 echo -e "\n${YELLOW}📦 Instalando dependencias...${NC}"
 npm install --production
+
+# Instalar dependencias
+echo -e "\n${YELLOW}📦 Instalando dependencias...${NC}"
+npm install --production
+
+# Asegurar que dotenv está instalado
+if ! npm list dotenv > /dev/null 2>&1; then
+    npm install dotenv
+fi
+
 echo -e "${GREEN}✅ Dependencias instaladas${NC}"
 
 # Permisos
