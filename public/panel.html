@@ -702,11 +702,11 @@
         </div>
         
         <nav class="sidebar-nav">
-            <a href="#" class="nav-item" onclick="showSection('dashboard')" id="nav-dashboard">
+            <a href="#" class="nav-item active" onclick="showSection('dashboard')" id="nav-dashboard">
                 <i class="fa-solid fa-grid-2"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="#" class="nav-item active" onclick="showSection('send')" id="nav-send">
+            <a href="#" class="nav-item" onclick="showSection('send')" id="nav-send">
                 <i class="fa-solid fa-paper-plane"></i>
                 <span>Enviar Mensaje</span>
             </a>
@@ -735,8 +735,8 @@
         <!-- Header -->
         <div class="header">
             <div class="header-left">
-                <h1 id="page-title">Enviar Mensaje</h1>
-                <p id="page-subtitle">Envía mensajes de WhatsApp desde tu aplicación</p>
+                <h1 id="page-title">Dashboard</h1>
+                <p id="page-subtitle">Gestiona tu conexión de WhatsApp</p>
             </div>
         </div>
         
@@ -748,29 +748,55 @@
             </div>
             
             <!-- Dashboard Section -->
-            <div id="section-dashboard" style="display: none;">
-                <div class="card" style="max-width: 800px; margin: 0 auto;">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <i class="fa-brands fa-whatsapp"></i>
-                            <h3>Conexión de WhatsApp</h3>
+            <div id="section-dashboard">
+                <div class="grid-container">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fa-brands fa-whatsapp"></i>
+                                <h3>Conexión de WhatsApp</h3>
+                            </div>
+                            <span class="status-badge disconnected" id="status-badge">
+                                <i class="fa-solid fa-circle"></i>
+                                Desconectado
+                            </span>
                         </div>
-                        <span class="status-badge disconnected" id="status-badge">
-                            <i class="fa-solid fa-circle"></i>
-                            Desconectado
-                        </span>
+                        <div class="card-body">
+                            <div id="whatsapp-content" class="qr-container">
+                                <div class="loading-spinner"></div>
+                                <p style="margin-top: 20px; color: #718096;">Cargando estado...</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div id="whatsapp-content" class="qr-container">
-                            <div class="loading-spinner"></div>
-                            <p style="margin-top: 20px; color: #718096;">Cargando estado...</p>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fa-solid fa-key"></i>
+                                <h3>Tu API Key</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="api-info">
+                                <h4>
+                                    <i class="fa-solid fa-code"></i>
+                                    Credenciales de API
+                                </h4>
+                                <div class="api-key-box">
+                                    <div class="api-key-text" id="api-key">••••••••••••••••••••</div>
+                                    <button class="copy-btn" onclick="copyApiKey()">
+                                        <i class="fa-solid fa-copy"></i>
+                                        Copiar
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             
             <!-- Send Message Section -->
-            <div id="section-send">
+            <div id="section-send" style="display: none;">
                 <div class="grid-container">
                     <div class="card">
                         <div class="card-header">
@@ -1083,103 +1109,127 @@ fetch(url, {
         
         // Actualizar UI con estado de WhatsApp
         function updateWhatsAppStatus(connected, qr, phoneNumber) {
-            const content = document.getElementById('whatsapp-status');
             const dashboardContent = document.getElementById('whatsapp-content');
+            const sendContent = document.getElementById('whatsapp-status');
             const badge1 = document.getElementById('status-badge');
             const badge2 = document.getElementById('status-badge-2');
             
             if (connected) {
-                // Badges
-                badge1.className = 'status-badge connected';
-                badge1.innerHTML = '<i class="fa-solid fa-circle"></i> Conectado';
-                badge2.className = 'status-badge connected';
-                badge2.innerHTML = '<i class="fa-solid fa-circle"></i> Conectado';
+                // Actualizar badges
+                if (badge1) {
+                    badge1.className = 'status-badge connected';
+                    badge1.innerHTML = '<i class="fa-solid fa-circle"></i> Conectado';
+                }
+                if (badge2) {
+                    badge2.className = 'status-badge connected';
+                    badge2.innerHTML = '<i class="fa-solid fa-circle"></i> Conectado';
+                }
                 
-                // Dashboard: QR + botón desconectar
-                dashboardContent.innerHTML = `
-                    <div class="connected-info">
-                        <div class="connected-icon">
-                            <i class="fa-solid fa-check"></i>
+                // Dashboard: Conectado con botón desconectar
+                if (dashboardContent) {
+                    dashboardContent.innerHTML = `
+                        <div class="connected-info">
+                            <div class="connected-icon">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+                            <h4>WhatsApp Conectado</h4>
+                            <p>Listo para enviar mensajes</p>
+                            <div class="phone-number" style="margin-bottom: 20px;">
+                                <i class="fa-solid fa-phone"></i>
+                                ${phoneNumber || 'Número no disponible'}
+                            </div>
+                            <button class="btn btn-danger" onclick="disconnectWhatsApp()" style="width: auto; margin-top: 16px;">
+                                <i class="fa-solid fa-plug-circle-xmark"></i>
+                                Desconectar / Cambiar Número
+                            </button>
                         </div>
-                        <h4>WhatsApp Conectado</h4>
-                        <p>Listo para enviar mensajes</p>
-                        <div class="phone-number" style="margin-bottom: 20px;">
-                            <i class="fa-solid fa-phone"></i>
-                            ${phoneNumber || 'Número no disponible'}
-                        </div>
-                        <button class="btn btn-danger" onclick="disconnectWhatsApp()" style="width: auto; margin-top: 16px;">
-                            <i class="fa-solid fa-plug-circle-xmark"></i>
-                            Desconectar / Cambiar Número
-                        </button>
-                    </div>
-                `;
+                    `;
+                }
                 
-                // Send section: Estado compacto
-                content.innerHTML = `
-                    <div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%); border-radius: 12px;">
-                        <div style="width: 56px; height: 56px; background: #48bb78; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-                            <i class="fa-solid fa-check" style="font-size: 28px; color: white;"></i>
+                // Send: Estado compacto
+                if (sendContent) {
+                    sendContent.innerHTML = `
+                        <div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%); border-radius: 12px;">
+                            <div style="width: 56px; height: 56px; background: #48bb78; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                                <i class="fa-solid fa-check" style="font-size: 28px; color: white;"></i>
+                            </div>
+                            <h4 style="font-size: 18px; font-weight: 700; color: #22543d; margin-bottom: 8px;">Conectado y Listo</h4>
+                            <p style="font-size: 14px; color: #276749; margin: 0;">
+                                <i class="fa-solid fa-phone"></i>
+                                ${phoneNumber || 'Número no disponible'}
+                            </p>
                         </div>
-                        <h4 style="font-size: 18px; font-weight: 700; color: #22543d; margin-bottom: 8px;">Conectado y Listo</h4>
-                        <p style="font-size: 14px; color: #276749; margin: 0;">
-                            <i class="fa-solid fa-phone"></i>
-                            ${phoneNumber || 'Número no disponible'}
-                        </p>
-                    </div>
-                `;
+                    `;
+                }
             } else if (qr) {
-                // Badges
-                badge1.className = 'status-badge disconnected';
-                badge1.innerHTML = '<i class="fa-solid fa-circle"></i> Esperando Conexión';
-                badge2.className = 'status-badge disconnected';
-                badge2.innerHTML = '<i class="fa-solid fa-circle"></i> Esperando Conexión';
+                // Actualizar badges
+                if (badge1) {
+                    badge1.className = 'status-badge disconnected';
+                    badge1.innerHTML = '<i class="fa-solid fa-circle"></i> Esperando Conexión';
+                }
+                if (badge2) {
+                    badge2.className = 'status-badge disconnected';
+                    badge2.innerHTML = '<i class="fa-solid fa-circle"></i> Esperando Conexión';
+                }
                 
                 // Dashboard: QR grande
-                dashboardContent.innerHTML = `
-                    <div class="qr-code">
-                        <img src="${qr}" alt="QR Code">
-                    </div>
-                    <div class="qr-instructions">
-                        <h4>Escanea el código QR</h4>
-                        <ol style="text-align: left; margin: 20px 0; padding-left: 24px;">
-                            <li style="color: #4a5568; margin-bottom: 10px; font-size: 14px;">Abre WhatsApp en tu teléfono</li>
-                            <li style="color: #4a5568; margin-bottom: 10px; font-size: 14px;">Ve a Configuración > Dispositivos vinculados</li>
-                            <li style="color: #4a5568; margin-bottom: 10px; font-size: 14px;">Toca "Vincular un dispositivo"</li>
-                            <li style="color: #4a5568; margin-bottom: 10px; font-size: 14px;">Escanea este código QR</li>
-                        </ol>
-                    </div>
-                `;
+                if (dashboardContent) {
+                    dashboardContent.innerHTML = `
+                        <div class="qr-code">
+                            <img src="${qr}" alt="QR Code">
+                        </div>
+                        <div class="qr-instructions">
+                            <h4>Escanea el código QR</h4>
+                            <ol>
+                                <li>Abre WhatsApp en tu teléfono</li>
+                                <li>Ve a Configuración > Dispositivos vinculados</li>
+                                <li>Toca "Vincular un dispositivo"</li>
+                                <li>Escanea este código QR</li>
+                            </ol>
+                        </div>
+                    `;
+                }
                 
-                // Send section: Aviso
-                content.innerHTML = `
-                    <div style="text-align: center; padding: 30px; background: #fff3cd; border-radius: 12px; border: 2px dashed #ffc107;">
-                        <i class="fa-solid fa-qrcode" style="font-size: 48px; color: #856404; margin-bottom: 16px;"></i>
-                        <h4 style="font-size: 16px; font-weight: 600; color: #856404; margin-bottom: 8px;">WhatsApp no conectado</h4>
-                        <p style="font-size: 14px; color: #856404; margin: 0;">Ve a <strong>Dashboard</strong> para escanear el código QR</p>
-                    </div>
-                `;
+                // Send: Aviso
+                if (sendContent) {
+                    sendContent.innerHTML = `
+                        <div style="text-align: center; padding: 30px; background: #fff3cd; border-radius: 12px; border: 2px dashed #ffc107;">
+                            <i class="fa-solid fa-qrcode" style="font-size: 48px; color: #856404; margin-bottom: 16px;"></i>
+                            <h4 style="font-size: 16px; font-weight: 600; color: #856404; margin-bottom: 8px;">WhatsApp no conectado</h4>
+                            <p style="font-size: 14px; color: #856404; margin: 0;">Ve a <strong>Dashboard</strong> para escanear el código QR</p>
+                        </div>
+                    `;
+                }
             } else {
-                // Badges
-                badge1.className = 'status-badge disconnected';
-                badge1.innerHTML = '<i class="fa-solid fa-circle"></i> Desconectado';
-                badge2.className = 'status-badge disconnected';
-                badge2.innerHTML = '<i class="fa-solid fa-circle"></i> Desconectado';
+                // Actualizar badges
+                if (badge1) {
+                    badge1.className = 'status-badge disconnected';
+                    badge1.innerHTML = '<i class="fa-solid fa-circle"></i> Desconectado';
+                }
+                if (badge2) {
+                    badge2.className = 'status-badge disconnected';
+                    badge2.innerHTML = '<i class="fa-solid fa-circle"></i> Desconectado';
+                }
                 
                 // Dashboard: Cargando
-                dashboardContent.innerHTML = `
-                    <div class="qr-container">
-                        <div class="loading-spinner"></div>
-                        <p style="margin-top: 20px; color: #718096;">Generando código QR...</p>
-                    </div>
-                `;
+                if (dashboardContent) {
+                    dashboardContent.innerHTML = `
+                        <div class="qr-container">
+                            <div class="loading-spinner"></div>
+                            <p style="margin-top: 20px; color: #718096;">Generando código QR...</p>
+                        </div>
+                    `;
+                }
                 
-                // Send section: Cargando
-                content.innerHTML = `
-                    <div style="text-align: center; padding: 30px;">
-                        <div class="loading-spinner" style="margin: 0 auto 20px;"></div>
-                        <p style="color: #718096;">Verificando conexión...</p>
-                    </div>
-                `;
+                // Send: Cargando
+                if (sendContent) {
+                    sendContent.innerHTML = `
+                        <div style="text-align: center; padding: 30px;">
+                            <div class="loading-spinner" style="margin: 0 auto 20px;"></div>
+                            <p style="color: #718096;">Verificando conexión...</p>
+                        </div>
+                    `;
+                }
             }
         }
         
