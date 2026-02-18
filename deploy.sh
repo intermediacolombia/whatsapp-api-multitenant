@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ================================================
-# DEPLOYMENT - Node.js + Nginx + SSL
+# DEPLOYMENT - Node.js + Nginx + SSL + Baileys
 # ================================================
 
 set -e
@@ -38,31 +38,16 @@ source .env
 echo -e "\n${YELLOW}📦 Instalando dependencias...${NC}"
 npm install --production
 
-# Instalar dependencias
-echo -e "\n${YELLOW}📦 Instalando dependencias...${NC}"
-npm install --production
-
 # Asegurar que dotenv está instalado
 if ! npm list dotenv > /dev/null 2>&1; then
     npm install dotenv
 fi
 
-# Verificar que Chrome esté instalado para Puppeteer
-if ! command -v chromium &> /dev/null; then
-    echo -e "${YELLOW}Instalando Chromium...${NC}"
-    sudo apt install -y chromium chromium-driver \
-        libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 \
-        libcups2 libdrm2 libxkbcommon0 libxcomposite1 \
-        libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2
+# ✅ NUEVO: Asegurar que axios está instalado (necesario para sendFile)
+if ! npm list axios > /dev/null 2>&1; then
+    echo -e "${YELLOW}Instalando axios...${NC}"
+    npm install axios
 fi
-
-# Instalar Chrome para Puppeteer si no existe
-if [ ! -d "$HOME/.cache/puppeteer/chrome" ]; then
-    echo -e "${YELLOW}Instalando Chrome para Puppeteer...${NC}"
-    npx puppeteer browsers install chrome
-fi
-
-
 
 echo -e "${GREEN}✅ Dependencias instaladas${NC}"
 
@@ -72,14 +57,27 @@ mkdir -p auth logs
 chmod 755 auth
 echo -e "${GREEN}✅ Permisos configurados${NC}"
 
+# ✅ NUEVO: Limpiar sesiones viejas de whatsapp-web.js si existen
+if [ -d ".wwebjs_auth" ]; then
+    echo -e "\n${YELLOW}🗑️  Limpiando sesiones antiguas de whatsapp-web.js...${NC}"
+    rm -rf .wwebjs_auth .wwebjs_cache
+    echo -e "${GREEN}✅ Sesiones antiguas eliminadas${NC}"
+fi
+
 # PM2
 echo -e "\n${YELLOW}🔄 Reiniciando aplicación...${NC}"
 if ! command -v pm2 &> /dev/null; then
     sudo npm install -g pm2
 fi
+
+# ✅ NUEVO: Usar --update-env para actualizar variables de entorno
 pm2 delete whatsapp-api 2>/dev/null || true
-pm2 start server.js --name whatsapp-api
+pm2 start server.js --name whatsapp-api --update-env
 pm2 save
+
+# ✅ NUEVO: Configurar auto-restart en caso de reinicio del servidor
+pm2 startup | tail -n 1 | sudo bash || true
+
 echo -e "${GREEN}✅ Aplicación reiniciada${NC}"
 
 # Nginx
@@ -107,6 +105,11 @@ server {
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
         proxy_cache_bypass \$http_upgrade;
+        
+        # ✅ NUEVO: Timeouts más largos para QR y conexiones lentas
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
     }
 }
 EOF
@@ -150,4 +153,6 @@ fi
 
 echo -e "\n${BLUE}════════════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}📱 Aplicación: ${BLUE}${PROTOCOL}://$DOMAIN${NC}"
+echo -e "${GREEN}📊 Logs:       ${BLUE}pm2 logs whatsapp-api${NC}"
+echo -e "${GREEN}🔄 Reiniciar:  ${BLUE}pm2 restart whatsapp-api --update-env${NC}"
 echo -e "${BLUE}════════════════════════════════════════════════════════${NC}\n"
