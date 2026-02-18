@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin - WhatsApp API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            color: #333;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .btn-logout {
+            padding: 12px 24px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .btn-logout:hover {
+            background: #c82333;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .stat-card h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .number {
+            font-size: 36px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .stat-card .label {
+            color: #999;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+        
+        .clients-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .section-header h2 {
+            font-size: 22px;
+            color: #333;
+        }
+        
+        .btn-add {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .clients-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .clients-table thead {
+            background: #f8f9fa;
+        }
+        
+        .clients-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .clients-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #666;
+        }
+        
+        .clients-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-badge.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-badge.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-badge.active {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-badge.suspended {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-action {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-view {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-view:hover {
+            background: #138496;
+        }
+        
+        .btn-edit {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .btn-edit:hover {
+            background: #e0a800;
+        }
+        
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-delete:hover {
+            background: #c82333;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h3 {
+            font-size: 22px;
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+        
+        .btn-cancel {
+            padding: 10px 20px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .btn-save {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .empty-state .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1>🔐 Panel de Super Admin</h1>
+                <p>Gestión de clientes y sistema WhatsApp API</p>
+            </div>
+            <button class="btn-logout" onclick="logout()">
+                🚪 Cerrar Sesión
+            </button>
+        </div>
+        
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-card">
+                <h3>TOTAL CLIENTES</h3>
+                <div class="number" id="total-clients">0</div>
+                <div class="label">Registrados en el sistema</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>CONECTADOS</h3>
+                <div class="number" id="connected-clients" style="color: #28a745;">0</div>
+                <div class="label">Con WhatsApp activo</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>DESCONECTADOS</h3>
+                <div class="number" id="disconnected-clients" style="color: #dc3545;">0</div>
+                <div class="label">Sin WhatsApp conectado</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>MENSAJES HOY</h3>
+                <div class="number" id="messages-today" style="color: #667eea;">0</div>
+                <div class="label">Enviados en las últimas 24h</div>
+            </div>
+        </div>
+        
+        <!-- Clients Table -->
+        <div class="clients-section">
+            <div class="section-header">
+                <h2>👥 Clientes Registrados</h2>
+                <button class="btn-add" onclick="openAddModal()">
+                    ➕ Agregar Cliente
+                </button>
+            </div>
+            
+            <table class="clients-table" id="clients-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>WhatsApp</th>
+                        <th>Número</th>
+                        <th>Estado</th>
+                        <th>API Key</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="clients-tbody">
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <div class="icon">📊</div>
+                                <p>Cargando clientes...</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Modal: Agregar/Editar Cliente -->
+    <div class="modal" id="client-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">➕ Agregar Nuevo Cliente</h3>
+            </div>
+            
+            <form id="client-form" onsubmit="saveClient(event)">
+                <input type="hidden" id="client-id">
+                
+                <div class="form-group">
+                    <label>ID del Cliente (slug)</label>
+                    <input type="text" id="client-slug" placeholder="activgym" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Nombre del Negocio</label>
+                    <input type="text" id="client-name" placeholder="ActivGym" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="client-email" placeholder="admin@activgym.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="client-password" placeholder="••••••••">
+                    <small style="color: #999;">Dejar vacío para mantener la actual</small>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn-save">
+                        💾 Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        let adminToken = localStorage.getItem('admin_token');
+        let clients = [];
+        
+        // Verificar autenticación
+        window.onload = () => {
+            if (!adminToken) {
+                window.location.href = '/admin-login.html';
+                return;
+            }
+            
+            loadClients();
+            startPolling();
+        };
+        
+        // Cargar clientes
+        async function loadClients() {
+            try {
+                const response = await fetch('/api/admin/clients', {
+                    headers: {
+                        'X-Admin-Token': adminToken
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.clear();
+                        window.location.href = '/admin-login.html';
+                        return;
+                    }
+                    throw new Error('Error cargando clientes');
+                }
+                
+                const data = await response.json();
+                clients = data.clients || [];
+                
+                renderClients();
+                updateStats();
+                
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        // Renderizar tabla de clientes
+        function renderClients() {
+            const tbody = document.getElementById('clients-tbody');
+            
+            if (clients.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <div class="icon">📭</div>
+                                <p>No hay clientes registrados</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = clients.map(client => `
+                <tr>
+                    <td><strong>${client.client_id}</strong></td>
+                    <td>${client.name}</td>
+                    <td>${client.email}</td>
+                    <td>
+                        <span class="status-badge ${client.whatsapp_connected ? 'connected' : 'disconnected'}">
+                            ${client.whatsapp_connected ? '🟢 Conectado' : '🔴 Desconectado'}
+                        </span>
+                    </td>
+                    <td>${client.phone_number || '-'}</td>
+                    <td>
+                        <span class="status-badge ${client.status}">
+                            ${client.status}
+                        </span>
+                    </td>
+                    <td><code style="font-size: 11px;">${client.api_key.substring(0, 20)}...</code></td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn-action btn-view" onclick="viewClient('${client.client_id}')">
+                                👁️ Ver
+                            </button>
+                            <button class="btn-action btn-edit" onclick="editClient('${client.client_id}')">
+                                ✏️ Editar
+                            </button>
+                            <button class="btn-action btn-delete" onclick="deleteClient('${client.client_id}')">
+                                🗑️
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // Actualizar estadísticas
+        function updateStats() {
+            document.getElementById('total-clients').textContent = clients.length;
+            document.getElementById('connected-clients').textContent = 
+                clients.filter(c => c.whatsapp_connected).length;
+            document.getElementById('disconnected-clients').textContent = 
+                clients.filter(c => !c.whatsapp_connected).length;
+        }
+        
+        // Polling cada 5 segundos
+        function startPolling() {
+            setInterval(loadClients, 5000);
+        }
+        
+        // Abrir modal agregar
+        function openAddModal() {
+            document.getElementById('modal-title').textContent = '➕ Agregar Nuevo Cliente';
+            document.getElementById('client-form').reset();
+            document.getElementById('client-id').value = '';
+            document.getElementById('client-modal').classList.add('show');
+        }
+        
+        // Editar cliente
+        function editClient(clientId) {
+            const client = clients.find(c => c.client_id === clientId);
+            if (!client) return;
+            
+            document.getElementById('modal-title').textContent = '✏️ Editar Cliente';
+            document.getElementById('client-id').value = client.client_id;
+            document.getElementById('client-slug').value = client.client_id;
+            document.getElementById('client-name').value = client.name;
+            document.getElementById('client-email').value = client.email;
+            document.getElementById('client-password').value = '';
+            
+            document.getElementById('client-modal').classList.add('show');
+        }
+        
+        // Guardar cliente
+        async function saveClient(event) {
+            event.preventDefault();
+            
+            const clientId = document.getElementById('client-id').value;
+            const data = {
+                client_id: document.getElementById('client-slug').value,
+                name: document.getElementById('client-name').value,
+                email: document.getElementById('client-email').value,
+                password: document.getElementById('client-password').value
+            };
+            
+            try {
+                const url = clientId 
+                    ? `/api/admin/clients/${clientId}`
+                    : '/api/admin/clients';
+                
+                const method = clientId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Token': adminToken
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    closeModal();
+                    loadClients();
+                    alert('✅ Cliente guardado correctamente');
+                } else {
+                    alert('❌ ' + result.error);
+                }
+                
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+        
+        // Ver cliente
+        function viewClient(clientId) {
+            const client = clients.find(c => c.client_id === clientId);
+            if (!client) return;
+            
+            alert(`
+📋 Información del Cliente
+
+ID: ${client.client_id}
+Nombre: ${client.name}
+Email: ${client.email}
+API Key: ${client.api_key}
+WhatsApp: ${client.whatsapp_connected ? 'Conectado' : 'Desconectado'}
+Número: ${client.phone_number || 'N/A'}
+Estado: ${client.status}
+            `);
+        }
+        
+        // Eliminar cliente
+        async function deleteClient(clientId) {
+            if (!confirm(`¿Eliminar el cliente "${clientId}"?\n\nEsta acción no se puede deshacer.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/admin/clients/${clientId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-Admin-Token': adminToken
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadClients();
+                    alert('✅ Cliente eliminado');
+                } else {
+                    alert('❌ ' + result.error);
+                }
+                
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+        
+        // Cerrar modal
+        function closeModal() {
+            document.getElementById('client-modal').classList.remove('show');
+        }
+        
+        // Cerrar sesión
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/admin-login.html';
+        }
+    </script>
+</body>
+</html>

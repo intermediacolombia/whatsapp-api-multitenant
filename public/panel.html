@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel WhatsApp - Mi Cuenta</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-left h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .header-left p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .header-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .status-badge {
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .status-badge.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-badge.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .btn-logout {
+            padding: 10px 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .btn-logout:hover {
+            background: #c82333;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .card h2 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        #qr-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #qr-image {
+            max-width: 250px;
+            border: 4px solid #667eea;
+            border-radius: 10px;
+            padding: 10px;
+            background: white;
+        }
+        
+        .connected-message {
+            text-align: center;
+        }
+        
+        .connected-message .icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+        
+        .connected-message h3 {
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .info-box {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .info-box strong {
+            display: block;
+            color: #004085;
+            margin-bottom: 5px;
+        }
+        
+        .info-box code {
+            background: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            color: #333;
+            display: inline-block;
+            margin-top: 5px;
+            word-break: break-all;
+        }
+        
+        .instructions {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 10px;
+            color: #856404;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+        
+        .instructions ol {
+            margin-top: 10px;
+            margin-left: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1 id="client-name">Cargando...</h1>
+                <p id="client-email">email@ejemplo.com</p>
+            </div>
+            <div class="header-right">
+                <div class="status-badge disconnected" id="status-badge">
+                    🔴 Desconectado
+                </div>
+                <button class="btn-logout" onclick="logout()">
+                    🚪 Cerrar Sesión
+                </button>
+            </div>
+        </div>
+        
+        <!-- Grid -->
+        <div class="grid">
+            <!-- Conexión WhatsApp -->
+            <div class="card">
+                <h2>📱 Mi Conexión WhatsApp</h2>
+                
+                <div id="qr-container">
+                    <div>
+                        <div class="spinner"></div>
+                        <p style="color: #666; margin-top: 10px;">Cargando...</p>
+                    </div>
+                </div>
+                
+                <div class="instructions" id="instructions" style="display: none;">
+                    <strong>📋 ¿Cómo conectar?</strong>
+                    <ol>
+                        <li>Abre WhatsApp en tu teléfono</li>
+                        <li>Menú (⋮) → Dispositivos vinculados</li>
+                        <li>Vincular un dispositivo</li>
+                        <li>Escanea el código QR</li>
+                    </ol>
+                </div>
+                
+                <button class="btn btn-primary" onclick="reconnect()" id="btn-reconnect" style="display: none;">
+                    🔄 Reconectar
+                </button>
+                
+                <button class="btn btn-danger" onclick="disconnect()" id="btn-disconnect" style="display: none;">
+                    🚪 Desconectar WhatsApp
+                </button>
+            </div>
+            
+            <!-- Información de la cuenta -->
+            <div class="card">
+                <h2>🔑 Información de tu API</h2>
+                
+                <div class="info-box">
+                    <strong>📱 Número de WhatsApp:</strong>
+                    <code id="phone-number">No conectado</code>
+                </div>
+                
+                <div class="info-box">
+                    <strong>🔐 Tu API Key (úsala en PHP):</strong>
+                    <code id="api-key">Cargando...</code>
+                </div>
+                
+                <div class="info-box">
+                    <strong>📍 Endpoint de la API:</strong>
+                    <code id="api-endpoint">http://tu-servidor.com:3000/api/send</code>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 20px;">
+                    <strong style="display: block; margin-bottom: 10px;">💡 Ejemplo de uso en PHP:</strong>
+                    <pre style="background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; font-size: 12px;">$data = [
+    'phonenumber' => '573001234567',
+    'text' => 'Hola! Tu factura',
+    'url' => 'https://tudominio.com/factura.pdf'
+];
+
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Authorization: Bearer ' . $tu_api_key
+]);</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let sessionToken = localStorage.getItem('session_token');
+        
+        // Verificar autenticación
+        window.onload = async () => {
+            if (!sessionToken) {
+                window.location.href = '/';
+                return;
+            }
+            
+            await loadClientInfo();
+            await checkStatus();
+            startPolling();
+        };
+        
+        // Cargar información del cliente
+        async function loadClientInfo() {
+            try {
+                const response = await fetch('/api/me', {
+                    headers: {
+                        'X-Session-Token': sessionToken
+                    }
+                });
+                
+                if (!response.ok) {
+                    localStorage.clear();
+                    window.location.href = '/';
+                    return;
+                }
+                
+                const data = await response.json();
+                const client = data.client;
+                
+                document.getElementById('client-name').textContent = client.name;
+                document.getElementById('client-email').textContent = client.email;
+                document.getElementById('api-key').textContent = client.api_key;
+                
+                if (client.phone_number) {
+                    document.getElementById('phone-number').textContent = '+' + client.phone_number;
+                }
+                
+            } catch (error) {
+                console.error('Error cargando info:', error);
+            }
+        }
+        
+        // Verificar estado de WhatsApp
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/my-status', {
+                    headers: {
+                        'X-Session-Token': sessionToken
+                    }
+                });
+                
+                const data = await response.json();
+                
+                updateUI(data.connected, data.qr, data.phone_number);
+                
+            } catch (error) {
+                console.error('Error verificando estado:', error);
+            }
+        }
+        
+        // Actualizar interfaz
+        function updateUI(connected, qr, phoneNumber) {
+            const statusBadge = document.getElementById('status-badge');
+            const qrContainer = document.getElementById('qr-container');
+            const instructions = document.getElementById('instructions');
+            const btnReconnect = document.getElementById('btn-reconnect');
+            const btnDisconnect = document.getElementById('btn-disconnect');
+            const phoneEl = document.getElementById('phone-number');
+            
+            if (connected) {
+                statusBadge.className = 'status-badge connected';
+                statusBadge.textContent = '🟢 Conectado';
+                
+                qrContainer.innerHTML = `
+                    <div class="connected-message">
+                        <div class="icon">✅</div>
+                        <h3>WhatsApp Conectado</h3>
+                        <p style="color: #666;">Tu sistema está listo para enviar mensajes</p>
+                    </div>
+                `;
+                
+                instructions.style.display = 'none';
+                btnReconnect.style.display = 'none';
+                btnDisconnect.style.display = 'block';
+                
+                if (phoneNumber) {
+                    phoneEl.textContent = '+' + phoneNumber;
+                }
+                
+            } else if (qr) {
+                statusBadge.className = 'status-badge disconnected';
+                statusBadge.textContent = '🔴 Desconectado';
+                
+                qrContainer.innerHTML = `<img src="${qr}" id="qr-image" alt="QR Code">`;
+                
+                instructions.style.display = 'block';
+                btnReconnect.style.display = 'block';
+                btnDisconnect.style.display = 'none';
+                
+            } else {
+                qrContainer.innerHTML = `
+                    <div>
+                        <div class="spinner"></div>
+                        <p style="color: #666; margin-top: 10px;">Generando código QR...</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Polling cada 3 segundos
+        function startPolling() {
+            setInterval(checkStatus, 3000);
+        }
+        
+        // Reconectar
+        async function reconnect() {
+            await checkStatus();
+        }
+        
+        // Desconectar WhatsApp
+        async function disconnect() {
+            if (!confirm('¿Desconectar tu WhatsApp? Tendrás que escanear el QR de nuevo.')) {
+                return;
+            }
+            
+            try {
+                await fetch('/api/my-disconnect', {
+                    method: 'POST',
+                    headers: {
+                        'X-Session-Token': sessionToken
+                    }
+                });
+                
+                setTimeout(checkStatus, 1000);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        // Cerrar sesión
+        async function logout() {
+            try {
+                await fetch('/api/logout', {
+                    method: 'POST',
+                    headers: {
+                        'X-Session-Token': sessionToken
+                    }
+                });
+            } catch (error) {
+                console.error('Error cerrando sesión:', error);
+            } finally {
+                localStorage.clear();
+                window.location.href = '/';
+            }
+        }
+    </script>
+</body>
+</html>
