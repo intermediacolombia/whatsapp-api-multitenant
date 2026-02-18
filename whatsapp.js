@@ -28,10 +28,10 @@ class WhatsAppConnection {
         try {
             // Crear cliente con autenticación local
             this.client = new Client({
-                authStrategy: new LocalAuth({
-                    dataPath: this.authFolder  // ← Usar carpeta personalizada
-                }),
-                 puppeteer: {
+    authStrategy: new LocalAuth({
+        dataPath: this.authFolder
+    }),
+    puppeteer: {
         headless: true,
         executablePath: '/usr/bin/chromium',
         args: [
