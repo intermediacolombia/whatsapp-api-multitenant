@@ -445,14 +445,9 @@
         }
         
         .iti__selected-flag {
-            padding: 0 0px 0 0px;
+            padding: 0 16px 0 18px;
         }
-        .iti--separate-dial-code .iti__selected-flag {
-    background-color: rgba(255, 255, 255, 0.0);
-}
-       .iti--separate-dial-code .iti__selected-flag:hover {
-    background-color: rgba(255, 255, 255, 0.0);
-} 
+        
         #phone {
             padding-left: 100px !important;
         }
@@ -499,6 +494,17 @@
         
         .btn-secondary:hover {
             background: #edf2f7;
+        }
+        
+        .btn-danger {
+            background: #fed7d7;
+            color: #c53030;
+            border: 1px solid #fc8181;
+        }
+        
+        .btn-danger:hover {
+            background: #fc8181;
+            color: white;
         }
         
         .btn i {
@@ -1088,10 +1094,14 @@ fetch(url, {
                         </div>
                         <h4>WhatsApp Conectado</h4>
                         <p>Listo para enviar mensajes</p>
-                        <div class="phone-number">
+                        <div class="phone-number" style="margin-bottom: 20px;">
                             <i class="fa-solid fa-phone"></i>
                             ${phoneNumber || 'Número no disponible'}
                         </div>
+                        <button class="btn btn-danger" onclick="disconnectWhatsApp()" style="width: auto; margin-top: 16px;">
+                            <i class="fa-solid fa-plug-circle-xmark"></i>
+                            Desconectar / Cambiar Número
+                        </button>
                     </div>
                 `;
             } else if (qr) {
@@ -1121,6 +1131,33 @@ fetch(url, {
                         <p style="margin-top: 20px; color: #718096;">Generando código QR...</p>
                     </div>
                 `;
+            }
+        }
+        
+        // Desconectar WhatsApp
+        async function disconnectWhatsApp() {
+            if (!confirm('¿Estás seguro de desconectar WhatsApp?\n\nTendrás que escanear el código QR nuevamente para conectar.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/my-disconnect', {
+                    method: 'POST',
+                    headers: {
+                        'X-Session-Token': sessionToken
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('WhatsApp desconectado correctamente. Escanea el QR para volver a conectar.', 'success');
+                    checkStatus();
+                } else {
+                    showAlert(data.error || 'Error al desconectar', 'error');
+                }
+            } catch (error) {
+                showAlert('Error de conexión con el servidor', 'error');
             }
         }
         
