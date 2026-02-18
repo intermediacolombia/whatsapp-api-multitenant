@@ -308,6 +308,9 @@ app.post('/api/admin/login', async (req, res) => {
 /**
  * GET /api/admin/clients - Listar todos los clientes (requiere admin)
  */
+/**
+ * GET /api/admin/clients - Listar todos los clientes (requiere admin)
+ */
 app.get('/api/admin/clients', async (req, res) => {
     try {
         const adminToken = req.headers['x-admin-token'];
@@ -335,9 +338,20 @@ app.get('/api/admin/clients', async (req, res) => {
         // Obtener todos los clientes
         const [clients] = await pool.execute('SELECT * FROM clients ORDER BY created_at DESC');
         
+        // Mapear clientes con estado de WhatsApp y número de teléfono
+        const clientsWithStatus = clients.map(client => {
+            const waData = whatsappInstances[client.client_id];
+            const conn = waData ? waData.instance : null;
+            return {
+                ...client,
+                whatsapp_connected: conn ? conn.getStatus() : false,
+                phone_number: conn ? conn.getPhoneNumber() : null
+            };
+        });
+        
         res.json({
             success: true,
-            clients: clients
+            clients: clientsWithStatus
         });
         
     } catch (error) {
@@ -561,23 +575,21 @@ app.get('/api/me', authenticateSession, async (req, res) => {
 /**
  * GET /api/my-status - Estado de WhatsApp del cliente
  */
-app.get('/api/my-status', authenticateSession, async (req, res) => {
-    try {
-        const clientId = req.client.client_id;
-        const wa = await ensureInitialized(clientId);
-        
-        res.json({
-            success: true,
-            connected: wa.getStatus(),
-            qr: wa.getQRImage() || null,
-            phone_number: req.client.phone_number
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
+app.get('/api/my-status', async (req, res) => {
+    const sessionToken = req.headers['x-session-token'];
+    const client = await getClientBySession(sessionToken);
+
+    if (!client) return res.status(401).json({ error: 'No autorizado' });
+
+    const waData = whatsappInstances[client.client_id];
+    const conn = waData ? waData.instance : null;
+    
+    res.json({
+        success: true,
+        connected: conn ? conn.getStatus() : false,
+        qr: conn ? conn.getQRImage() : null,
+        phone_number: conn ? conn.getPhoneNumber() : null
+    });
 });
 
 /**

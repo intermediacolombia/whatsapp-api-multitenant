@@ -84,12 +84,13 @@ class WhatsAppConnection {
 
     // Método para asegurar que el número esté disponible si se consulta justo al conectar
     getPhoneNumber() { 
-        if (this.phoneNumber) return this.phoneNumber;
-        if (this.sock?.user?.id) {
-            return jidNormalizedUser(this.sock.user.id).split('@')[0];
-        }
-        return null; 
+    if (this.phoneNumber) return this.phoneNumber;
+    if (this.sock && this.sock.user && this.sock.user.id) {
+        const { jidNormalizedUser } = require('@whiskeysockets/baileys');
+        return jidNormalizedUser(this.sock.user.id).split('@')[0];
     }
+    return null; 
+}
 
     async sendMessage(phone, message) {
         if (!this.isConnected) throw new Error('WhatsApp no conectado');
