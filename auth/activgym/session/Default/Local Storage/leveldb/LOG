@@ -1,0 +1,9 @@
+2026/02/17-17:32:15.158 424c Reusing MANIFEST D:\whatsapp-nodejs\auth\activgym\session\Default\Local Storage\leveldb/MANIFEST-000001
+2026/02/17-17:32:15.181 424c Recovering log #3
+2026/02/17-17:32:15.202 424c Reusing old log D:\whatsapp-nodejs\auth\activgym\session\Default\Local Storage\leveldb/000003.log 
+2026/02/17-18:28:28.969 1a38 Level-0 table #5: started
+2026/02/17-18:28:29.258 1a38 Level-0 table #5: 19342 bytes OK
+2026/02/17-18:28:29.598 1a38 Delete type=0 #3
+2026/02/17-22:32:34.264 1a38 Level-0 table #7: started
+2026/02/17-22:32:34.324 1a38 Level-0 table #7: 13917 bytes OK
+2026/02/17-22:32:34.358 1a38 Delete type=0 #4

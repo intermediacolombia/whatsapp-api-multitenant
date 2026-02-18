@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 /**
  * SERVIDOR MULTI-TENANT CON BASE DE DATOS
  * Sistema completo con login, MySQL y sesiones por cliente
@@ -19,9 +21,9 @@ const upload = multer();
 const dbConfig = {
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 3306,
-    user: process.env.DB_USER || 'whatsapp_user',
+    user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME || 'whatsapp_api_multitenant',
+    database: process.env.DB_NAME || 'whatsapp_api',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -266,35 +268,34 @@ app.post('/api/admin/login', async (req, res) => {
         }
         
         const admin = rows[0];
-        
-        // Verificar contraseña
+
         const passwordMatch = await bcrypt.compare(password, admin.password);
-        
+
         if (!passwordMatch) {
             return res.status(401).json({
                 success: false,
                 error: 'Credenciales inválidas'
             });
         }
-        
-        // Crear token de admin
+
+        // Crear token
         const adminToken = crypto.randomBytes(32).toString('hex');
-        
-        // Guardar en sesión (reutilizamos la tabla sessions)
-        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
-        
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+        // ✅ Guardar en tabla admin_sessions
         await pool.execute(`
-            INSERT INTO sessions (client_id, session_token, ip_address, user_agent, expires_at)
+            INSERT INTO admin_sessions 
+            (admin_id, session_token, ip_address, user_agent, expires_at)
             VALUES (?, ?, ?, ?, ?)
-        `, ['ADMIN_' + admin.id, adminToken, req.ip, req.headers['user-agent'], expiresAt]);
-        
+        `, [admin.id, adminToken, req.ip, req.headers['user-agent'], expiresAt]);
+
         res.json({
             success: true,
             admin_token: adminToken,
             username: admin.username,
             role: admin.role
         });
-        
+
     } catch (error) {
         console.error('Error en admin login:', error);
         res.status(500).json({
@@ -320,7 +321,7 @@ app.get('/api/admin/clients', async (req, res) => {
         
         // Verificar que es un token de admin
         const [sessions] = await pool.execute(
-            'SELECT * FROM sessions WHERE session_token = ? AND expires_at > NOW() AND client_id LIKE "ADMIN_%"',
+            'SELECT * FROM admin_sessions WHERE session_token = ? AND expires_at > NOW()',
             [adminToken]
         );
         
@@ -363,7 +364,7 @@ app.post('/api/admin/clients', async (req, res) => {
         
         // Verificar admin
         const [sessions] = await pool.execute(
-            'SELECT * FROM sessions WHERE session_token = ? AND expires_at > NOW() AND client_id LIKE "ADMIN_%"',
+            'SELECT * FROM admin_sessions WHERE session_token = ? AND expires_at > NOW()',
             [adminToken]
         );
         
@@ -417,8 +418,8 @@ app.delete('/api/admin/clients/:clientId', async (req, res) => {
         
         // Verificar admin
         const [sessions] = await pool.execute(
-            'SELECT * FROM sessions WHERE session_token = ? AND expires_at > NOW() AND client_id LIKE "ADMIN_%"',
-            [adminToken]
+         'SELECT * FROM admin_sessions WHERE session_token = ? AND expires_at > NOW()',
+         [adminToken]
         );
         
         if (sessions.length === 0) {
