@@ -3,17 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp API - Panel de Control</title>
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Intl Tel Input CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.2.1/css/intlTelInput.css">
-    
+    <title>Panel WhatsApp - Mi Cuenta</title>
     <style>
         * {
             margin: 0;
@@ -22,1045 +12,326 @@
         }
         
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #f8f9fd;
-            color: #2d3748;
-        }
-        
-        /* Sidebar */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 280px;
-            background: #ffffff;
-            box-shadow: 2px 0 12px rgba(0,0,0,0.05);
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .sidebar-header {
-            padding: 32px 28px;
-            border-bottom: 1px solid #e8ecf4;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        
-        .logo-icon {
-            width: 48px;
-            height: 48px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
-        }
-        
-        .logo-icon i {
-            font-size: 24px;
-            color: #ffffff;
-        }
-        
-        .logo-text h2 {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1a202c;
-            line-height: 1.2;
-        }
-        
-        .logo-text p {
-            font-size: 12px;
-            color: #718096;
-            margin-top: 2px;
-        }
-        
-        .sidebar-nav {
-            flex: 1;
-            padding: 24px 16px;
-            overflow-y: auto;
-        }
-        
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 12px 16px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 4px;
-            color: #4a5568;
-            text-decoration: none;
-        }
-        
-        .nav-item:hover {
-            background: #f7fafc;
-            color: #667eea;
-        }
-        
-        .nav-item.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        }
-        
-        .nav-item i {
-            font-size: 18px;
-            width: 20px;
-            text-align: center;
-        }
-        
-        .nav-item span {
-            font-size: 14px;
-            font-weight: 500;
-        }
-        
-        .sidebar-footer {
-            padding: 20px 28px;
-            border-top: 1px solid #e8ecf4;
-        }
-        
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        
-        .user-avatar {
-            width: 44px;
-            height: 44px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            font-size: 18px;
-            font-weight: 600;
-        }
-        
-        .user-info {
-            flex: 1;
-        }
-        
-        .user-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: #2d3748;
-        }
-        
-        .user-role {
-            font-size: 12px;
-            color: #a0aec0;
-        }
-        
-        .logout-btn {
-            background: none;
-            border: none;
-            color: #cbd5e0;
-            cursor: pointer;
-            font-size: 18px;
-            padding: 8px;
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-        
-        .logout-btn:hover {
-            background: #f7fafc;
-            color: #fc8181;
-        }
-        
-        /* Main Content */
-        .main-content {
-            margin-left: 280px;
             min-height: 100vh;
+            padding: 20px;
         }
         
-        /* Header */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
         .header {
-            background: #ffffff;
-            padding: 24px 40px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         
         .header-left h1 {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1a202c;
-            margin-bottom: 4px;
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 5px;
         }
         
         .header-left p {
+            color: #666;
             font-size: 14px;
-            color: #718096;
         }
         
-        /* Content */
-        .content {
-            padding: 32px 40px;
-            max-width: 1400px;
-        }
-        
-        /* Grid Layout */
-        .grid-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 32px;
-        }
-        
-        /* Card */
-        .card {
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border: 1px solid #e8ecf4;
-            overflow: hidden;
-        }
-        
-        .card-header {
-            padding: 24px 28px;
-            border-bottom: 1px solid #e8ecf4;
+        .header-right {
             display: flex;
-            justify-content: space-between;
+            gap: 10px;
             align-items: center;
-        }
-        
-        .card-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .card-title h3 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1a202c;
-        }
-        
-        .card-title i {
-            font-size: 20px;
-            color: #667eea;
         }
         
         .status-badge {
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 12px;
+            padding: 10px 20px;
+            border-radius: 20px;
             font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+            font-size: 14px;
         }
         
         .status-badge.connected {
-            background: #c6f6d5;
-            color: #22543d;
+            background: #d4edda;
+            color: #155724;
         }
         
         .status-badge.disconnected {
-            background: #fed7d7;
-            color: #742a2a;
+            background: #f8d7da;
+            color: #721c24;
         }
         
-        .status-badge i {
-            font-size: 10px;
+        .btn-logout {
+            padding: 10px 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
         }
         
-        .card-body {
-            padding: 28px;
+        .btn-logout:hover {
+            background: #c82333;
         }
         
-        /* WhatsApp QR */
-        .qr-container {
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .card h2 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        #qr-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            min-height: 300px;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 400px;
         }
         
-        .qr-code {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 16px;
-            border: 2px solid #e8ecf4;
-            margin-bottom: 24px;
+        #qr-image {
+            max-width: 250px;
+            border: 4px solid #667eea;
+            border-radius: 10px;
+            padding: 10px;
+            background: white;
         }
         
-        .qr-code img {
-            display: block;
-            max-width: 280px;
-            width: 100%;
-        }
-        
-        .qr-instructions {
+        .connected-message {
             text-align: center;
-            max-width: 500px;
         }
         
-        .qr-instructions h4 {
-            font-size: 18px;
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 12px;
+        .connected-message .icon {
+            font-size: 60px;
+            margin-bottom: 15px;
         }
         
-        .qr-instructions ol {
-            text-align: left;
-            margin: 20px 0;
-            padding-left: 24px;
-        }
-        
-        .qr-instructions li {
-            color: #4a5568;
+        .connected-message h3 {
+            color: #28a745;
             margin-bottom: 10px;
-            font-size: 14px;
         }
         
-        .loading-spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid #e8ecf4;
-            border-top-color: #667eea;
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
             border-radius: 50%;
+            width: 50px;
+            height: 50px;
             animation: spin 1s linear infinite;
+            margin: 0 auto;
         }
         
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
-        .connected-info {
-            text-align: center;
-            padding: 40px;
-        }
-        
-        .connected-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 36px;
-            color: #ffffff;
-            margin-bottom: 24px;
-            box-shadow: 0 8px 24px rgba(72, 187, 120, 0.3);
-        }
-        
-        .connected-info h4 {
-            font-size: 22px;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 8px;
-        }
-        
-        .connected-info p {
-            font-size: 15px;
-            color: #718096;
-            margin-bottom: 24px;
-        }
-        
-        .phone-number {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 20px;
-            background: #f7fafc;
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
             border-radius: 10px;
             font-size: 15px;
             font-weight: 600;
-            color: #4a5568;
-        }
-        
-        /* Message Form */
-        .form-group {
-            margin-bottom: 24px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 10px;
-            color: #2d3748;
-            font-weight: 600;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .form-group label i {
-            color: #667eea;
-            font-size: 13px;
-        }
-        
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 14px 18px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 15px;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s ease;
-            background: #f7fafc;
-            color: #2d3748;
-        }
-        
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            background: #ffffff;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-        }
-        
-        .form-group textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-        
-        /* Phone Input with Country Selector */
-        .phone-input-wrapper {
-            position: relative;
-        }
-        
-        .iti {
-            width: 100%;
-        }
-        
-        .iti__flag-container {
-            padding-left: 18px;
-        }
-        
-        .iti__selected-flag {
-            padding: 0 16px 0 18px;
-        }
-        
-        #phone {
-            padding-left: 100px !important;
-        }
-        
-        /* Buttons */
-        .btn {
-            padding: 14px 24px;
-            border: none;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            margin-top: 15px;
+            transition: all 0.3s;
         }
         
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-            width: 100%;
         }
         
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn-primary:disabled {
-            background: #cbd5e0;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .btn-secondary {
-            background: #f7fafc;
-            color: #4a5568;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .btn-secondary:hover {
-            background: #edf2f7;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
         
         .btn-danger {
-            background: #fed7d7;
-            color: #c53030;
-            border: 1px solid #fc8181;
+            background: #dc3545;
+            color: white;
         }
         
         .btn-danger:hover {
-            background: #fc8181;
-            color: white;
+            background: #c82333;
         }
         
-        .btn i {
-            font-size: 16px;
-        }
-        
-        /* Alert */
-        .alert {
-            padding: 16px 20px;
-            border-radius: 12px;
-            display: none;
-            align-items: center;
-            gap: 12px;
-            font-size: 14px;
-            font-weight: 500;
-            animation: slideDown 0.3s ease;
-            margin-bottom: 24px;
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .alert.show {
-            display: flex;
-        }
-        
-        .alert.error {
-            background: #fed7d7;
-            border: 1px solid #fc8181;
-            color: #742a2a;
-        }
-        
-        .alert.success {
-            background: #c6f6d5;
-            border: 1px solid #48bb78;
-            color: #22543d;
-        }
-        
-        .alert i {
-            font-size: 18px;
-        }
-        
-        /* API Info */
-        .api-info {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 24px;
-            border-radius: 12px;
-            color: white;
-            margin-top: 24px;
-        }
-        
-        .api-info h4 {
-            font-size: 16px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .api-key-box {
-            background: rgba(255,255,255,0.15);
-            padding: 12px 16px;
+        .info-box {
+            background: #e7f3ff;
+            padding: 15px;
             border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 15px;
         }
         
-        .api-key-text {
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .copy-btn {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: #ffffff;
-            padding: 6px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .copy-btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-        
-        /* Mobile Menu Toggle */
-        .mobile-menu-btn {
-            display: none;
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 1000;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-            font-size: 20px;
-        }
-        
-        .sidebar.mobile-open {
-            transform: translateX(0) !important;
-        }
-        
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 99;
-        }
-        
-        .sidebar-overlay.show {
+        .info-box strong {
             display: block;
+            color: #004085;
+            margin-bottom: 5px;
         }
         
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .grid-container {
+        .info-box code {
+            background: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            color: #333;
+            display: inline-block;
+            margin-top: 5px;
+            word-break: break-all;
+        }
+        
+        .instructions {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 10px;
+            color: #856404;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+        
+        .instructions ol {
+            margin-top: 10px;
+            margin-left: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
                 grid-template-columns: 1fr;
-            }
-        }
-        
-        @media (max-width: 1024px) {
-            .mobile-menu-btn {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .sidebar {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-            }
-            
-            .main-content {
-                margin-left: 0;
             }
             
             .header {
-                padding-left: 80px;
+                flex-direction: column;
+                gap: 15px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Mobile Menu Button -->
-    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
-        <i class="fa-solid fa-bars"></i>
-    </button>
-    
-    <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleMobileMenu()"></div>
-    
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">
-                <div class="logo-icon">
-                    <i class="fa-brands fa-whatsapp"></i>
-                </div>
-                <div class="logo-text">
-                    <h2>WhatsApp API</h2>
-                    <p>Multi-Tenant</p>
-                </div>
-            </div>
-        </div>
-        
-        <nav class="sidebar-nav">
-            <a href="#" class="nav-item active" onclick="showSection('dashboard')" id="nav-dashboard">
-                <i class="fa-solid fa-grid-2"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="#" class="nav-item" onclick="showSection('send')" id="nav-send">
-                <i class="fa-solid fa-paper-plane"></i>
-                <span>Enviar Mensaje</span>
-            </a>
-            <a href="#" class="nav-item" onclick="showSection('docs')" id="nav-docs">
-                <i class="fa-solid fa-book"></i>
-                <span>Documentación</span>
-            </a>
-        </nav>
-        
-        <div class="sidebar-footer">
-            <div class="user-profile">
-                <div class="user-avatar" id="user-avatar">U</div>
-                <div class="user-info">
-                    <div class="user-name" id="user-name">Usuario</div>
-                    <div class="user-role">Cliente</div>
-                </div>
-                <button class="logout-btn" onclick="logout()" title="Cerrar Sesión">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Main Content -->
-    <div class="main-content">
+    <div class="container">
         <!-- Header -->
         <div class="header">
             <div class="header-left">
-                <h1 id="page-title">Dashboard</h1>
-                <p id="page-subtitle">Gestiona tu conexión de WhatsApp</p>
+                <h1 id="client-name">Cargando...</h1>
+                <p id="client-email">email@ejemplo.com</p>
+            </div>
+            <div class="header-right">
+                <div class="status-badge disconnected" id="status-badge">
+                    🔴 Desconectado
+                </div>
+                <button class="btn-logout" onclick="logout()">
+                    🚪 Cerrar Sesión
+                </button>
             </div>
         </div>
         
-        <!-- Content -->
-        <div class="content">
-            <div id="alert" class="alert">
-                <i class="fa-solid fa-circle-info"></i>
-                <span id="alert-message"></span>
-            </div>
-            
-            <!-- Dashboard Section -->
-            <div id="section-dashboard">
-                <div class="grid-container">
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i class="fa-brands fa-whatsapp"></i>
-                                <h3>Conexión de WhatsApp</h3>
-                            </div>
-                            <span class="status-badge disconnected" id="status-badge">
-                                <i class="fa-solid fa-circle"></i>
-                                Desconectado
-                            </span>
-                        </div>
-                        <div class="card-body">
-                            <div id="whatsapp-content" class="qr-container">
-                                <div class="loading-spinner"></div>
-                                <p style="margin-top: 20px; color: #718096;">Cargando estado...</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i class="fa-solid fa-key"></i>
-                                <h3>Tu API Key</h3>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="api-info">
-                                <h4>
-                                    <i class="fa-solid fa-code"></i>
-                                    Credenciales de API
-                                </h4>
-                                <div class="api-key-box">
-                                    <div class="api-key-text" id="api-key">••••••••••••••••••••</div>
-                                    <button class="copy-btn" onclick="copyApiKey()">
-                                        <i class="fa-solid fa-copy"></i>
-                                        Copiar
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+        <!-- Grid -->
+        <div class="grid">
+            <!-- Conexión WhatsApp -->
+            <div class="card">
+                <h2>📱 Mi Conexión WhatsApp</h2>
+                
+                <div id="qr-container">
+                    <div>
+                        <div class="spinner"></div>
+                        <p style="color: #666; margin-top: 10px;">Cargando...</p>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Send Message Section -->
-            <div id="section-send" style="display: none;">
-                <div class="grid-container">
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i class="fa-solid fa-paper-plane"></i>
-                                <h3>Enviar Mensaje</h3>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <form id="message-form" onsubmit="sendMessage(event)">
-                                <div class="form-group">
-                                    <label>
-                                        <i class="fa-solid fa-phone"></i>
-                                        Número de Teléfono
-                                    </label>
-                                    <div class="phone-input-wrapper">
-                                        <input 
-                                            type="tel" 
-                                            id="phone" 
-                                            placeholder="Ingresa el número"
-                                            required
-                                        >
-                                    </div>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label>
-                                        <i class="fa-solid fa-message"></i>
-                                        Mensaje
-                                    </label>
-                                    <textarea 
-                                        id="message" 
-                                        placeholder="Escribe tu mensaje aquí..."
-                                        required
-                                    ></textarea>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label>
-                                        <i class="fa-solid fa-paperclip"></i>
-                                        URL de Archivo Adjunto (Opcional)
-                                    </label>
-                                    <input 
-                                        type="url" 
-                                        id="fileUrl" 
-                                        placeholder="https://ejemplo.com/archivo.pdf"
-                                    >
-                                </div>
-                                
-                                <button type="submit" class="btn btn-primary" id="send-btn">
-                                    <i class="fa-solid fa-paper-plane"></i>
-                                    <span id="send-btn-text">Enviar Mensaje</span>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i class="fa-brands fa-whatsapp"></i>
-                                <h3>Estado de WhatsApp</h3>
-                            </div>
-                            <span class="status-badge disconnected" id="status-badge-2">
-                                <i class="fa-solid fa-circle"></i>
-                                Desconectado
-                            </span>
-                        </div>
-                        <div class="card-body">
-                            <div id="whatsapp-status">
-                                <div style="text-align: center; padding: 20px; color: #718096;">
-                                    <div class="loading-spinner" style="margin: 0 auto 20px;"></div>
-                                    <p>Verificando conexión...</p>
-                                </div>
-                            </div>
-                            
-                            <!-- Instrucciones de uso -->
-                            <div style="background: #f7fafc; padding: 20px; border-radius: 12px; margin-top: 24px;">
-                                <h4 style="font-size: 16px; font-weight: 600; color: #2d3748; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                                    <i class="fa-solid fa-circle-info" style="color: #667eea;"></i>
-                                    Cómo enviar mensajes
-                                </h4>
-                                <ol style="margin: 0; padding-left: 20px; color: #4a5568; font-size: 14px; line-height: 1.8;">
-                                    <li><strong>Conecta WhatsApp:</strong> Escanea el código QR en la sección Dashboard</li>
-                                    <li><strong>Ingresa el número:</strong> Incluye el código de país (ej: +57)</li>
-                                    <li><strong>Escribe tu mensaje:</strong> El texto que quieres enviar</li>
-                                    <li><strong>Adjunta archivo (opcional):</strong> URL de PDF, imagen, etc.</li>
-                                    <li><strong>Envía:</strong> Haz clic en "Enviar Mensaje"</li>
-                                </ol>
-                            </div>
-                            
-                            <!-- API Key Info -->
-                            <div class="api-info" style="margin-top: 24px;">
-                                <h4>
-                                    <i class="fa-solid fa-key"></i>
-                                    Tu API Key
-                                </h4>
-                                <div class="api-key-box">
-                                    <div class="api-key-text" id="api-key">••••••••••••••••••••</div>
-                                    <button class="copy-btn" onclick="copyApiKey()">
-                                        <i class="fa-solid fa-copy"></i>
-                                        Copiar
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                
+                <div class="instructions" id="instructions" style="display: none;">
+                    <strong>📋 ¿Cómo conectar?</strong>
+                    <ol>
+                        <li>Abre WhatsApp en tu teléfono</li>
+                        <li>Menú (⋮) → Dispositivos vinculados</li>
+                        <li>Vincular un dispositivo</li>
+                        <li>Escanea el código QR</li>
+                    </ol>
                 </div>
+                
+                <button class="btn btn-primary" onclick="reconnect()" id="btn-reconnect" style="display: none;">
+                    🔄 Reconectar
+                </button>
+                
+                <button class="btn btn-danger" onclick="disconnect()" id="btn-disconnect" style="display: none;">
+                    🚪 Desconectar WhatsApp
+                </button>
             </div>
             
-            <!-- Documentation Section -->
-            <div id="section-docs" style="display: none;">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <i class="fa-solid fa-book"></i>
-                            <h3>Documentación de la API</h3>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div style="max-width: 800px;">
-                            <h4 style="font-size: 20px; font-weight: 700; color: #1a202c; margin-bottom: 16px;">
-                                <i class="fa-solid fa-code" style="color: #667eea;"></i>
-                                Cómo usar la API
-                            </h4>
-                            
-                            <div style="background: #f7fafc; padding: 20px; border-radius: 12px; margin-bottom: 24px; border-left: 4px solid #667eea;">
-                                <p style="font-size: 14px; font-weight: 600; color: #2d3748; margin-bottom: 8px;">
-                                    <i class="fa-solid fa-location-dot" style="color: #667eea;"></i>
-                                    Endpoint de la API:
-                                </p>
-                                <code style="background: #e2e8f0; padding: 8px 12px; border-radius: 8px; display: block; font-family: 'Courier New', monospace; font-size: 14px; color: #2d3748;">
-                                    https://api.intermediahost.co/api/send
-                                </code>
-                            </div>
-                            
-                            <div style="margin-bottom: 32px;">
-                                <h5 style="font-size: 16px; font-weight: 600; color: #2d3748; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                                    <i class="fa-brands fa-php" style="color: #667eea;"></i>
-                                    Ejemplo en PHP
-                                </h5>
-                                
-                                <pre style="background: #1a202c; color: #e2e8f0; padding: 20px; border-radius: 12px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6;"><code>&lt;?php
-$apiKey = 'TU_API_KEY_AQUI';
-$url = 'https://api.intermediahost.co/api/send';
-
-$data = [
-    'phonenumber' => '573001234567',  // Con código de país
-    'text' => 'Hola! Tu factura está lista',
-    'url' => 'https://tudominio.com/factura.pdf'  // Opcional
+            <!-- Información de la cuenta -->
+            <div class="card">
+                <h2>🔑 Información de tu API</h2>
+                
+                <div class="info-box">
+                    <strong>📱 Número de WhatsApp:</strong>
+                    <code id="phone-number">No conectado</code>
+                </div>
+                
+                <div class="info-box">
+                    <strong>🔐 Tu API Key (úsala en PHP):</strong>
+                    <code id="api-key">Cargando...</code>
+                </div>
+                
+                <div class="info-box">
+                    <strong>📍 Endpoint de la API:</strong>
+                    <code id="api-endpoint">http://api.intermediahost.co/api/send</code>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 20px;">
+                    <strong style="display: block; margin-bottom: 10px;">💡 Ejemplo de uso en PHP:</strong>
+                    <pre style="background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; font-size: 12px;">$data = [
+    'phonenumber' => '573001234567',
+    'text' => 'Hola! Tu factura',
+    'url' => 'https://tudominio.com/factura.pdf'
 ];
 
-$ch = curl_init($url);
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Authorization: Bearer ' . $apiKey
-]);
-
-$response = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
-
-if ($httpCode == 200) {
-    echo "Mensaje enviado correctamente";
-} else {
-    echo "Error al enviar mensaje";
-}
-?&gt;</code></pre>
-                            </div>
-                            
-                            <div style="margin-bottom: 32px;">
-                                <h5 style="font-size: 16px; font-weight: 600; color: #2d3748; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                                    <i class="fa-brands fa-js" style="color: #f7df1e;"></i>
-                                    Ejemplo en JavaScript
-                                </h5>
-                                
-                                <pre style="background: #1a202c; color: #e2e8f0; padding: 20px; border-radius: 12px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6;"><code>const apiKey = 'TU_API_KEY_AQUI';
-const url = 'https://api.intermediahost.co/api/send';
-
-const data = {
-    phonenumber: '573001234567',
-    text: 'Hola! Tu factura está lista',
-    url: 'https://tudominio.com/factura.pdf'  // Opcional
-};
-
-fetch(url, {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-    },
-    body: JSON.stringify(data)
-})
-.then(response => response.json())
-.then(data => {
-    if (data.success) {
-        console.log('Mensaje enviado:', data);
-    } else {
-        console.error('Error:', data.error);
-    }
-})
-.catch(error => console.error('Error:', error));</code></pre>
-                            </div>
-                            
-                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 24px; border-radius: 12px; color: white;">
-                                <h5 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-                                    <i class="fa-solid fa-circle-info"></i>
-                                    Parámetros de la API
-                                </h5>
-                                
-                                <table style="width: 100%; font-size: 14px;">
-                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.2);">
-                                        <td style="padding: 12px 0; font-weight: 600;">phonenumber</td>
-                                        <td style="padding: 12px 0;">Número con código de país (ej: 573001234567)</td>
-                                        <td style="padding: 12px 0; text-align: right;"><span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 6px; font-size: 12px;">Requerido</span></td>
-                                    </tr>
-                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.2);">
-                                        <td style="padding: 12px 0; font-weight: 600;">text</td>
-                                        <td style="padding: 12px 0;">Mensaje de texto a enviar</td>
-                                        <td style="padding: 12px 0; text-align: right;"><span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 6px; font-size: 12px;">Requerido</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 12px 0; font-weight: 600;">url</td>
-                                        <td style="padding: 12px 0;">URL del archivo a adjuntar (PDF, imagen, etc.)</td>
-                                        <td style="padding: 12px 0; text-align: right;"><span style="background: rgba(255,255,255,0.15); padding: 4px 8px; border-radius: 6px; font-size: 12px;">Opcional</span></td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+    'Authorization: Bearer ' . $tu_api_key
+]);</pre>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Intl Tel Input JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.2.1/js/intlTelInput.min.js"></script>
-    
     <script>
         let sessionToken = localStorage.getItem('session_token');
-        let clientData = null;
-        let checkInterval = null;
-        let phoneInput = null;
         
         // Verificar autenticación
-        if (!sessionToken) {
-            window.location.href = '/';
-        }
+        window.onload = async () => {
+            if (!sessionToken) {
+                window.location.href = '/';
+                return;
+            }
+            
+            await loadClientInfo();
+            await checkStatus();
+            startPolling();
+        };
         
-        // Inicializar selector de país
-        function initPhoneInput() {
-            const input = document.querySelector("#phone");
-            phoneInput = window.intlTelInput(input, {
-                initialCountry: "co",
-                preferredCountries: ["co", "us", "mx", "es"],
-                separateDialCode: true,
-                utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.2.1/js/utils.js"
-            });
-        }
-        
-        // Cargar datos del usuario
-        async function loadUserData() {
+        // Cargar información del cliente
+        async function loadClientInfo() {
             try {
                 const response = await fetch('/api/me', {
                     headers: {
@@ -1069,22 +340,24 @@ fetch(url, {
                 });
                 
                 if (!response.ok) {
-                    logout();
+                    localStorage.clear();
+                    window.location.href = '/';
                     return;
                 }
                 
                 const data = await response.json();
-                clientData = data.client;
+                const client = data.client;
                 
-                document.getElementById('user-name').textContent = clientData.name;
-                document.getElementById('user-avatar').textContent = clientData.name.charAt(0).toUpperCase();
-                document.getElementById('api-key').textContent = clientData.api_key;
+                document.getElementById('client-name').textContent = client.name;
+                document.getElementById('client-email').textContent = client.email;
+                document.getElementById('api-key').textContent = client.api_key;
                 
-                checkStatus();
-                checkInterval = setInterval(checkStatus, 5000);
+                if (client.phone_number) {
+                    document.getElementById('phone-number').textContent = '+' + client.phone_number;
+                }
                 
             } catch (error) {
-                showAlert('Error cargando datos del usuario', 'error');
+                console.error('Error cargando info:', error);
             }
         }
         
@@ -1099,245 +372,90 @@ fetch(url, {
                 
                 const data = await response.json();
                 
-                if (data.success) {
-                    updateWhatsAppStatus(data.connected, data.qr, data.phone_number);
-                }
+                updateUI(data.connected, data.qr, data.phone_number);
+                
             } catch (error) {
-                console.error('Error checking status:', error);
+                console.error('Error verificando estado:', error);
             }
         }
         
-        // Actualizar UI con estado de WhatsApp
-        function updateWhatsAppStatus(connected, qr, phoneNumber) {
-            const dashboardContent = document.getElementById('whatsapp-content');
-            const sendContent = document.getElementById('whatsapp-status');
-            const badge1 = document.getElementById('status-badge');
-            const badge2 = document.getElementById('status-badge-2');
+        // Actualizar interfaz
+        function updateUI(connected, qr, phoneNumber) {
+            const statusBadge = document.getElementById('status-badge');
+            const qrContainer = document.getElementById('qr-container');
+            const instructions = document.getElementById('instructions');
+            const btnReconnect = document.getElementById('btn-reconnect');
+            const btnDisconnect = document.getElementById('btn-disconnect');
+            const phoneEl = document.getElementById('phone-number');
             
             if (connected) {
-                // Actualizar badges
-                if (badge1) {
-                    badge1.className = 'status-badge connected';
-                    badge1.innerHTML = '<i class="fa-solid fa-circle"></i> Conectado';
-                }
-                if (badge2) {
-                    badge2.className = 'status-badge connected';
-                    badge2.innerHTML = '<i class="fa-solid fa-circle"></i> Conectado';
+                statusBadge.className = 'status-badge connected';
+                statusBadge.textContent = '🟢 Conectado';
+                
+                qrContainer.innerHTML = `
+                    <div class="connected-message">
+                        <div class="icon">✅</div>
+                        <h3>WhatsApp Conectado</h3>
+                        <p style="color: #666;">Tu sistema está listo para enviar mensajes</p>
+                    </div>
+                `;
+                
+                instructions.style.display = 'none';
+                btnReconnect.style.display = 'none';
+                btnDisconnect.style.display = 'block';
+                
+                if (phoneNumber) {
+                    phoneEl.textContent = '+' + phoneNumber;
                 }
                 
-                // Dashboard: Conectado con botón desconectar
-                if (dashboardContent) {
-                    dashboardContent.innerHTML = `
-                        <div class="connected-info">
-                            <div class="connected-icon">
-                                <i class="fa-solid fa-check"></i>
-                            </div>
-                            <h4>WhatsApp Conectado</h4>
-                            <p>Listo para enviar mensajes</p>
-                            <div class="phone-number" style="margin-bottom: 20px;">
-                                <i class="fa-solid fa-phone"></i>
-                                ${phoneNumber || 'Número no disponible'}
-                            </div>
-                            <button class="btn btn-danger" onclick="disconnectWhatsApp()" style="width: auto; margin-top: 16px;">
-                                <i class="fa-solid fa-plug-circle-xmark"></i>
-                                Desconectar / Cambiar Número
-                            </button>
-                        </div>
-                    `;
-                }
-                
-                // Send: Estado compacto
-                if (sendContent) {
-                    sendContent.innerHTML = `
-                        <div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%); border-radius: 12px;">
-                            <div style="width: 56px; height: 56px; background: #48bb78; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-                                <i class="fa-solid fa-check" style="font-size: 28px; color: white;"></i>
-                            </div>
-                            <h4 style="font-size: 18px; font-weight: 700; color: #22543d; margin-bottom: 8px;">Conectado y Listo</h4>
-                            <p style="font-size: 14px; color: #276749; margin: 0;">
-                                <i class="fa-solid fa-phone"></i>
-                                ${phoneNumber || 'Número no disponible'}
-                            </p>
-                        </div>
-                    `;
-                }
             } else if (qr) {
-                // Actualizar badges
-                if (badge1) {
-                    badge1.className = 'status-badge disconnected';
-                    badge1.innerHTML = '<i class="fa-solid fa-circle"></i> Esperando Conexión';
-                }
-                if (badge2) {
-                    badge2.className = 'status-badge disconnected';
-                    badge2.innerHTML = '<i class="fa-solid fa-circle"></i> Esperando Conexión';
-                }
+                statusBadge.className = 'status-badge disconnected';
+                statusBadge.textContent = '🔴 Desconectado';
                 
-                // Dashboard: QR grande
-                if (dashboardContent) {
-                    dashboardContent.innerHTML = `
-                        <div class="qr-code">
-                            <img src="${qr}" alt="QR Code">
-                        </div>
-                        <div class="qr-instructions">
-                            <h4>Escanea el código QR</h4>
-                            <ol>
-                                <li>Abre WhatsApp en tu teléfono</li>
-                                <li>Ve a Configuración > Dispositivos vinculados</li>
-                                <li>Toca "Vincular un dispositivo"</li>
-                                <li>Escanea este código QR</li>
-                            </ol>
-                        </div>
-                    `;
-                }
+                qrContainer.innerHTML = `<img src="${qr}" id="qr-image" alt="QR Code">`;
                 
-                // Send: Aviso
-                if (sendContent) {
-                    sendContent.innerHTML = `
-                        <div style="text-align: center; padding: 30px; background: #fff3cd; border-radius: 12px; border: 2px dashed #ffc107;">
-                            <i class="fa-solid fa-qrcode" style="font-size: 48px; color: #856404; margin-bottom: 16px;"></i>
-                            <h4 style="font-size: 16px; font-weight: 600; color: #856404; margin-bottom: 8px;">WhatsApp no conectado</h4>
-                            <p style="font-size: 14px; color: #856404; margin: 0;">Ve a <strong>Dashboard</strong> para escanear el código QR</p>
-                        </div>
-                    `;
-                }
+                instructions.style.display = 'block';
+                btnReconnect.style.display = 'block';
+                btnDisconnect.style.display = 'none';
+                
             } else {
-                // Actualizar badges
-                if (badge1) {
-                    badge1.className = 'status-badge disconnected';
-                    badge1.innerHTML = '<i class="fa-solid fa-circle"></i> Desconectado';
-                }
-                if (badge2) {
-                    badge2.className = 'status-badge disconnected';
-                    badge2.innerHTML = '<i class="fa-solid fa-circle"></i> Desconectado';
-                }
-                
-                // Dashboard: Cargando
-                if (dashboardContent) {
-                    dashboardContent.innerHTML = `
-                        <div class="qr-container">
-                            <div class="loading-spinner"></div>
-                            <p style="margin-top: 20px; color: #718096;">Generando código QR...</p>
-                        </div>
-                    `;
-                }
-                
-                // Send: Cargando
-                if (sendContent) {
-                    sendContent.innerHTML = `
-                        <div style="text-align: center; padding: 30px;">
-                            <div class="loading-spinner" style="margin: 0 auto 20px;"></div>
-                            <p style="color: #718096;">Verificando conexión...</p>
-                        </div>
-                    `;
-                }
+                qrContainer.innerHTML = `
+                    <div>
+                        <div class="spinner"></div>
+                        <p style="color: #666; margin-top: 10px;">Generando código QR...</p>
+                    </div>
+                `;
             }
+        }
+        
+        // Polling cada 3 segundos
+        function startPolling() {
+            setInterval(checkStatus, 3000);
+        }
+        
+        // Reconectar
+        async function reconnect() {
+            await checkStatus();
         }
         
         // Desconectar WhatsApp
-        async function disconnectWhatsApp() {
-            if (!confirm('¿Estás seguro de desconectar WhatsApp?\n\nTendrás que escanear el código QR nuevamente para conectar.')) {
+        async function disconnect() {
+            if (!confirm('¿Desconectar tu WhatsApp? Tendrás que escanear el QR de nuevo.')) {
                 return;
             }
             
             try {
-                const response = await fetch('/api/my-disconnect', {
+                await fetch('/api/my-disconnect', {
                     method: 'POST',
                     headers: {
                         'X-Session-Token': sessionToken
                     }
                 });
                 
-                const data = await response.json();
-                
-                if (data.success) {
-                    showAlert('WhatsApp desconectado correctamente. Escanea el QR para volver a conectar.', 'success');
-                    checkStatus();
-                } else {
-                    showAlert(data.error || 'Error al desconectar', 'error');
-                }
+                setTimeout(checkStatus, 1000);
             } catch (error) {
-                showAlert('Error de conexión con el servidor', 'error');
+                alert('Error: ' + error.message);
             }
-        }
-        
-        // Enviar mensaje
-        async function sendMessage(event) {
-            event.preventDefault();
-            
-            const phoneNumber = phoneInput.getNumber(); // Obtiene número con código de país
-            const message = document.getElementById('message').value;
-            const fileUrl = document.getElementById('fileUrl').value;
-            const btn = document.getElementById('send-btn');
-            const btnText = document.getElementById('send-btn-text');
-            
-            btn.disabled = true;
-            btnText.textContent = 'Enviando...';
-            
-            try {
-                const response = await fetch('/api/send', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${clientData.api_key}`
-                    },
-                    body: JSON.stringify({
-                        phonenumber: phoneNumber,
-                        text: message,
-                        url: fileUrl || undefined
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showAlert('Mensaje enviado correctamente', 'success');
-                    document.getElementById('message-form').reset();
-                    phoneInput.setNumber('');
-                } else {
-                    showAlert(data.error || 'Error al enviar mensaje', 'error');
-                }
-                
-            } catch (error) {
-                showAlert('Error de conexión con el servidor', 'error');
-            } finally {
-                btn.disabled = false;
-                btnText.textContent = 'Enviar Mensaje';
-            }
-        }
-        
-        // Cambiar sección
-        function showSection(section) {
-            document.getElementById('section-dashboard').style.display = 'none';
-            document.getElementById('section-send').style.display = 'none';
-            document.getElementById('section-docs').style.display = 'none';
-            
-            document.getElementById('nav-dashboard').classList.remove('active');
-            document.getElementById('nav-send').classList.remove('active');
-            document.getElementById('nav-docs').classList.remove('active');
-            
-            if (section === 'dashboard') {
-                document.getElementById('section-dashboard').style.display = 'block';
-                document.getElementById('nav-dashboard').classList.add('active');
-                document.getElementById('page-title').textContent = 'Dashboard';
-                document.getElementById('page-subtitle').textContent = 'Gestiona tu conexión de WhatsApp';
-            } else if (section === 'send') {
-                document.getElementById('section-send').style.display = 'block';
-                document.getElementById('nav-send').classList.add('active');
-                document.getElementById('page-title').textContent = 'Enviar Mensaje';
-                document.getElementById('page-subtitle').textContent = 'Envía mensajes de WhatsApp desde tu aplicación';
-            } else if (section === 'docs') {
-                document.getElementById('section-docs').style.display = 'block';
-                document.getElementById('nav-docs').classList.add('active');
-                document.getElementById('page-title').textContent = 'Documentación';
-                document.getElementById('page-subtitle').textContent = 'Aprende a integrar la API';
-            }
-        }
-        
-        // Copiar API Key
-        function copyApiKey() {
-            const apiKey = document.getElementById('api-key').textContent;
-            navigator.clipboard.writeText(apiKey);
-            showAlert('API Key copiada al portapapeles', 'success');
         }
         
         // Cerrar sesión
@@ -1350,39 +468,12 @@ fetch(url, {
                     }
                 });
             } catch (error) {
-                console.error('Error al cerrar sesión:', error);
+                console.error('Error cerrando sesión:', error);
+            } finally {
+                localStorage.clear();
+                window.location.href = '/';
             }
-            
-            localStorage.clear();
-            if (checkInterval) clearInterval(checkInterval);
-            window.location.href = '/';
         }
-        
-        // Mostrar alerta
-        function showAlert(message, type) {
-            const alert = document.getElementById('alert');
-            const alertMessage = document.getElementById('alert-message');
-            
-            alertMessage.textContent = message;
-            alert.className = `alert ${type} show`;
-            
-            setTimeout(() => {
-                alert.classList.remove('show');
-            }, 5000);
-        }
-        
-        // Toggle mobile menu
-        function toggleMobileMenu() {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            
-            sidebar.classList.toggle('mobile-open');
-            overlay.classList.toggle('show');
-        }
-        
-        // Inicializar
-        initPhoneInput();
-        loadUserData();
     </script>
 </body>
 </html>
