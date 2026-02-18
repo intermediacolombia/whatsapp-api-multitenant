@@ -111,17 +111,49 @@ class WhatsAppConnection {
         return { success: true, messageId: result.key.id };
     }
 
-    async sendFile(phone, fileUrl, caption = '') {
-        if (!this.isConnected) throw new Error('WhatsApp no conectado');
-
-        const jid = `${phone.replace(/[^0-9]/g, '')}@s.whatsapp.net`;
-        const result = await this.sock.sendMessage(jid, { 
-            document: { url: fileUrl }, 
-            caption: caption,
-            fileName: fileUrl.split('/').pop() 
-        });
-        return { success: true, messageId: result.key.id };
+    async sendFile(phoneNumber, fileUrl, fileName, caption = '') {
+    if (!this.isConnected) {
+        throw new Error('WhatsApp no está conectado');
     }
+
+    // Limpiar número
+    const cleanNumber = phoneNumber.replace(/\D/g, '');
+    const jid = cleanNumber.includes('@') ? cleanNumber : `${cleanNumber}@s.whatsapp.net`;
+
+    // ✅ Validar que el número existe en WhatsApp
+    const [result] = await this.sock.onWhatsApp(jid);
+    if (!result || !result.exists) {
+        throw new Error(`El número ${phoneNumber} no está registrado en WhatsApp`);
+    }
+
+    try {
+        // Descargar el archivo
+        const axios = require('axios');
+        const response = await axios.get(fileUrl, { responseType: 'arraybuffer' });
+        const buffer = Buffer.from(response.data);
+
+        // Detectar tipo MIME
+        let mimetype = response.headers['content-type'] || 'application/octet-stream';
+        
+        // ✅ CORRECCIÓN: El caption debe ir dentro del objeto de mensaje
+        const message = await this.sock.sendMessage(jid, {
+            document: buffer,
+            mimetype: mimetype,
+            fileName: fileName,
+            caption: caption || '' // ✅ Aquí va el texto que acompaña al archivo
+        });
+
+        return {
+            success: true,
+            messageId: message.key.id,
+            phone: phoneNumber
+        };
+
+    } catch (error) {
+        console.error(`❌ Error enviando archivo a ${phoneNumber}:`, error.message);
+        throw new Error(`Error enviando archivo: ${error.message}`);
+    }
+}
 
     getQRImage() { return this.qrCodeImage; }
     getStatus() { return this.isConnected; }
