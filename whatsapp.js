@@ -27,23 +27,23 @@ class WhatsAppConnection {
         
         try {
             // Crear cliente con autenticación local
-            this.client = new Client({
-                authStrategy: new LocalAuth({
-                    dataPath: this.authFolder  // ← Usar carpeta personalizada
-                }),
-                puppeteer: {
-                    headless: true,
-                    args: [
-                        '--no-sandbox',
-                        '--disable-setuid-sandbox',
-                        '--disable-dev-shm-usage',
-                        '--disable-accelerated-2d-canvas',
-                        '--no-first-run',
-                        '--no-zygote',
-                        '--disable-gpu'
-                    ]
-                }
-            });
+            tthis.client = new Client({
+    authStrategy: new LocalAuth({
+        dataPath: this.authFolder
+    }),
+    puppeteer: {
+        headless: true,
+        executablePath: '/usr/bin/chromium',
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--disable-gpu'
+        ]
+    }
             
             // ========== EVENTOS ==========
             

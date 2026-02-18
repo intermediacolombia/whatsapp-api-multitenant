@@ -47,6 +47,23 @@ if ! npm list dotenv > /dev/null 2>&1; then
     npm install dotenv
 fi
 
+# Verificar que Chrome esté instalado para Puppeteer
+if ! command -v chromium &> /dev/null; then
+    echo -e "${YELLOW}Instalando Chromium...${NC}"
+    sudo apt install -y chromium chromium-driver \
+        libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 \
+        libcups2 libdrm2 libxkbcommon0 libxcomposite1 \
+        libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2
+fi
+
+# Instalar Chrome para Puppeteer si no existe
+if [ ! -d "$HOME/.cache/puppeteer/chrome" ]; then
+    echo -e "${YELLOW}Instalando Chrome para Puppeteer...${NC}"
+    npx puppeteer browsers install chrome
+fi
+
+
+
 echo -e "${GREEN}✅ Dependencias instaladas${NC}"
 
 # Permisos
