@@ -64,7 +64,12 @@ class WhatsAppConnection {
                 this.isInitializing = false;
                 this.qrCodeImage = null;
                 this.phoneNumber = this.sock.user.id.split(':')[0];
-                console.log(`✅ [${this.clientId}] CONECTADO`);
+                console.log(`✅ [${this.clientId}] CONECTADO como: ${this.phoneNumber}`);
+                
+                // ✅ Emitir evento para que server.js actualice la BD
+                if (this.onConnected) {
+                    this.onConnected(this.phoneNumber);
+                }
             }
         });
     }

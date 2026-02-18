@@ -148,18 +148,15 @@ async function ensureInitialized(clientId) {
     
     if (!waData.isInitialized) {
         console.log(`🔌 Inicializando WhatsApp para: ${waData.clientName}`);
+        
+        // ✅ Callback para actualizar BD cuando se conecte
+        waData.instance.onConnected = async (phoneNumber) => {
+            await updateWhatsAppStatus(clientId, true, phoneNumber);
+            console.log(`📞 [${clientId}] Número guardado en BD: ${phoneNumber}`);
+        };
+        
         await waData.instance.initialize();
         waData.isInitialized = true;
-        
-        // Actualizar estado en BD cuando se conecte
-        waData.instance.client.on('ready', async () => {
-            const info = waData.instance.client.info;
-            await updateWhatsAppStatus(clientId, true, info.wid.user);
-        });
-        
-        waData.instance.client.on('disconnected', async () => {
-            await updateWhatsAppStatus(clientId, false);
-        });
     }
     
     return waData.instance;
