@@ -149,10 +149,23 @@ async function ensureInitialized(clientId) {
     if (!waData.isInitialized) {
         console.log(`🔌 Inicializando WhatsApp para: ${waData.clientName}`);
         
-        // ✅ Callback para actualizar BD cuando se conecte
+        // ✅ Callback cuando se conecta
         waData.instance.onConnected = async (phoneNumber) => {
             await updateWhatsAppStatus(clientId, true, phoneNumber);
             console.log(`📞 [${clientId}] Número guardado en BD: ${phoneNumber}`);
+        };
+        
+        // ✅ Callback cuando se desconecta
+        waData.instance.onDisconnected = async () => {
+            await updateWhatsAppStatus(clientId, false, null);
+            console.log(`📴 [${clientId}] Desconectado - BD actualizada`);
+        };
+        
+        // ✅ Callback cuando el usuario cierra sesión desde el teléfono
+        waData.instance.onLogout = async () => {
+            console.log(`♻️ [${clientId}] Sesión cerrada - Reseteando instancia`);
+            delete whatsappInstances[clientId];
+            await updateWhatsAppStatus(clientId, false, null);
         };
         
         await waData.instance.initialize();
