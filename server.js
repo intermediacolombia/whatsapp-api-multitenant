@@ -19,15 +19,14 @@ const upload = multer();
 
 // ========== CONFIGURACIÓN DE BASE DE DATOS ==========
 const dbConfig = {
-    host: process.env.DB_HOST || '127.0.0.1',
+    host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 3306,
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME || 'whatsapp_api',
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0,
-    connectTimeout: 5000  // ← Solo este es válido
+    queueLimit: 0
 };
 
 // Pool de conexiones
@@ -122,25 +121,23 @@ async function getWhatsAppInstance(clientId) {
         return whatsappInstances[clientId];
     }
     
-    const [rows] = await pool.execute(
+    const client = await pool.execute(
         'SELECT * FROM clients WHERE client_id = ?',
         [clientId]
     );
     
-    if (rows.length === 0) {
+    if (client[0].length === 0) {
         throw new Error('Cliente no encontrado');
     }
     
-    const clientData = rows[0];
-    const wa = new WhatsAppConnection(clientId); // ← Pasamos clientId
+    const clientData = client[0][0];
+    const wa = new WhatsAppConnection();
     wa.authFolder = `./auth/${clientId}`;
     
     whatsappInstances[clientId] = {
         instance: wa,
         isInitialized: false,
-        clientName: clientData.name,
-        connected: false,        // ← NUEVO: caché de estado
-        phoneNumber: null        // ← NUEVO: caché de número
+        clientName: clientData.name
     };
     
     return whatsappInstances[clientId];
@@ -148,42 +145,23 @@ async function getWhatsAppInstance(clientId) {
 
 async function ensureInitialized(clientId) {
     const waData = await getWhatsAppInstance(clientId);
-
-    // Si ya está inicializado y conectado, retorna rápido
-    if (waData.isInitialized && waData.connected) {
-        return waData.instance;
-    }
-
+    
     if (!waData.isInitialized) {
         console.log(`🔌 Inicializando WhatsApp para: ${waData.clientName}`);
+        await waData.instance.initialize();
         waData.isInitialized = true;
         
-        const wa = waData.instance;
-        
-        // Escuchar eventos de conexión para guardar en CACHÉ
-        wa.on('connection.update', async (update) => {
-            if (update.connection === 'open') {
-                const phone = wa.getPhoneNumber();
-                console.log(`✅ [${clientId}] Conectado como: ${phone}`);
-                
-                // Guardamos en memoria para acceso instantáneo
-                waData.connected = true;
-                waData.phoneNumber = phone;
-                
-                // Actualizamos BD en segundo plano (sin bloquear)
-                updateWhatsAppStatus(clientId, true, phone).catch(console.error);
-                
-            } else if (update.connection === 'close') {
-                console.log(`❌ [${clientId}] Desconectado`);
-                waData.connected = false;
-                waData.phoneNumber = null;
-                updateWhatsAppStatus(clientId, false, null).catch(console.error);
-            }
+        // Actualizar estado en BD cuando se conecte
+        waData.instance.client.on('ready', async () => {
+            const info = waData.instance.client.info;
+            await updateWhatsAppStatus(clientId, true, info.wid.user);
         });
-
-        await wa.initialize();
+        
+        waData.instance.client.on('disconnected', async () => {
+            await updateWhatsAppStatus(clientId, false);
+        });
     }
-
+    
     return waData.instance;
 }
 
@@ -330,9 +308,6 @@ app.post('/api/admin/login', async (req, res) => {
 /**
  * GET /api/admin/clients - Listar todos los clientes (requiere admin)
  */
-/**
- * GET /api/admin/clients - Listar todos los clientes (requiere admin)
- */
 app.get('/api/admin/clients', async (req, res) => {
     try {
         const adminToken = req.headers['x-admin-token'];
@@ -360,20 +335,9 @@ app.get('/api/admin/clients', async (req, res) => {
         // Obtener todos los clientes
         const [clients] = await pool.execute('SELECT * FROM clients ORDER BY created_at DESC');
         
-        // ✅ MAPEO INSTANTÁNEO CON CACHÉ
-        const clientsWithStatus = clients.map(client => {
-            const waData = whatsappInstances[client.client_id];
-            return {
-                ...client,
-                // Usamos caché de memoria (instantáneo)
-                whatsapp_connected: waData ? (waData.connected || false) : client.whatsapp_connected,
-                phone_number: waData ? (waData.phoneNumber || null) : client.phone_number
-            };
-        });
-        
         res.json({
             success: true,
-            clients: clientsWithStatus
+            clients: clients
         });
         
     } catch (error) {
@@ -597,21 +561,23 @@ app.get('/api/me', authenticateSession, async (req, res) => {
 /**
  * GET /api/my-status - Estado de WhatsApp del cliente
  */
-app.get('/api/my-status', async (req, res) => {
-    const sessionToken = req.headers['x-session-token'];
-    const client = await getClientBySession(sessionToken);
-
-    if (!client) return res.status(401).json({ error: 'No autorizado' });
-
-    const waData = whatsappInstances[client.client_id];
-    
-    // ✅ RESPUESTA INSTANTÁNEA DESDE CACHÉ
-    res.json({
-        success: true,
-        connected: waData ? (waData.connected || false) : client.whatsapp_connected,
-        qr: waData ? waData.instance.getQRImage() : null,
-        phone_number: waData ? (waData.phoneNumber || null) : client.phone_number
-    });
+app.get('/api/my-status', authenticateSession, async (req, res) => {
+    try {
+        const clientId = req.client.client_id;
+        const wa = await ensureInitialized(clientId);
+        
+        res.json({
+            success: true,
+            connected: wa.getStatus(),
+            qr: wa.getQRImage() || null,
+            phone_number: req.client.phone_number
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
 });
 
 /**
@@ -726,31 +692,22 @@ app.use((req, res) => {
 
 // ========== INICIAR SERVIDOR ==========
 
-// ========== INICIAR SERVIDOR ==========
-
 app.listen(PORT, '0.0.0.0', async () => {
     console.log('\n╔════════════════════════════════════════════╗');
     console.log('║  🚀 WHATSAPP API MULTI-TENANT + MySQL     ║');
     console.log('╚════════════════════════════════════════════╝\n');
     console.log(`📱 Login Portal: http://localhost:${PORT}`);
     console.log(`🔌 API REST:     http://localhost:${PORT}/api`);
-    console.log(`🗄️  MySQL:       Conectando...\n`);
+    console.log(`🗄️  MySQL:       Conectado\n`);
     
-    // Test de conexión a BD con timeout
-    const testConnection = async () => {
-        try {
-            const start = Date.now();
-            await pool.execute('SELECT 1');
-            const elapsed = Date.now() - start;
-            console.log(`✅ Conexión a MySQL exitosa (${elapsed}ms)\n`);
-        } catch (error) {
-            console.error('❌ Error conectando a MySQL:', error.message);
-            console.error('   Verifica la configuración en .env\n');
-        }
-    };
-    
-    // Ejecutar test sin bloquear el servidor
-    testConnection();
+    // Test de conexión a BD
+    try {
+        await pool.execute('SELECT 1');
+        console.log('✅ Conexión a MySQL exitosa\n');
+    } catch (error) {
+        console.error('❌ Error conectando a MySQL:', error.message);
+        console.error('   Verifica la configuración en dbConfig\n');
+    }
 });
 
 process.on('SIGINT', async () => {
