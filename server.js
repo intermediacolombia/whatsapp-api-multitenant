@@ -374,8 +374,8 @@ async function authenticateAdmin(req, res, next) {
     
     try {
         const [sessions] = await pool.execute(`
-            SELECT a.* FROM admins a
-            INNER JOIN admin_sessions s ON a.admin_id = s.admin_id
+            SELECT a.* FROM admin_users a
+            INNER JOIN admin_sessions s ON a.id = s.admin_id
             WHERE s.session_token = ? AND s.expires_at > NOW()
         `, [adminToken]);
         
@@ -389,6 +389,7 @@ async function authenticateAdmin(req, res, next) {
         req.admin = sessions[0];
         next();
     } catch (error) {
+        console.error('❌ Error authenticateAdmin:', error);  // ← Agregar log
         res.status(500).json({
             success: false,
             error: 'Error de autenticación'
