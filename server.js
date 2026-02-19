@@ -124,14 +124,14 @@ async function logMessage(clientId, data) {
             clientId, 
             phoneNumber, 
             messageType, 
-            messageText,
-            fileUrl,
-            caption,
+            messageText || null,        
+            fileUrl || null,            
+            caption || null,           
             status, 
-            errorMessage, 
-            messageId,
-            timestampSent,
-            responseTime
+            errorMessage || null,       
+            messageId || null,          
+            timestampSent || null,      
+            responseTime || null        
         ]);
         
         console.log(`📝 [${clientId}] Mensaje registrado en BD: ${phoneNumber}`);
@@ -642,7 +642,15 @@ app.post('/api/send', authenticateAPI, async (req, res) => {
         const messageText = text || message;
         
         if (!phoneNumber || !messageText) {
-            await logMessage(clientId, phoneNumber || 'unknown', 'text', 'failed', 'Faltan parámetros', null, messageText, null, null, null, Date.now() - startTime);
+            await logMessage(clientId, {
+                phoneNumber: phoneNumber || 'unknown',
+                messageType: 'text',
+                messageText: messageText,
+                status: 'failed',
+                errorMessage: 'Faltan parámetros',
+                responseTime: Date.now() - startTime
+            });
+            
             return res.status(400).json({
                 success: false,
                 error: 'Número y mensaje son requeridos'
@@ -652,7 +660,17 @@ app.post('/api/send', authenticateAPI, async (req, res) => {
         const wa = await ensureInitialized(clientId);
         
         if (!wa.getStatus()) {
-            await logMessage(clientId, phoneNumber, url ? 'file' : 'text', 'failed', 'WhatsApp no conectado', null, messageText, url || null, caption || null, null, Date.now() - startTime);
+            await logMessage(clientId, {
+                phoneNumber: phoneNumber,
+                messageType: url ? 'file' : 'text',
+                messageText: messageText,
+                fileUrl: url,
+                caption: caption,
+                status: 'failed',
+                errorMessage: 'WhatsApp no conectado',
+                responseTime: Date.now() - startTime
+            });
+            
             return res.status(503).json({
                 success: false,
                 error: 'WhatsApp no está conectado'
@@ -671,7 +689,19 @@ app.post('/api/send', authenticateAPI, async (req, res) => {
             
             const responseTime = Date.now() - startTime;
             
-            await logMessage(clientId, phoneNumber, messageType, 'sent', null, result.messageId, messageText, url || null, caption || null, result.timestamp, responseTime);
+            // ✨ REGISTRO COMPLETO DEL MENSAJE
+            await logMessage(clientId, {
+                phoneNumber: phoneNumber,
+                messageType: messageType,
+                messageText: messageText,
+                fileUrl: url || null,
+                caption: caption || null,
+                status: 'sent',
+                errorMessage: null,
+                messageId: result.messageId,
+                timestampSent: result.timestamp,
+                responseTime: responseTime
+            });
             
             res.json({
                 success: true,
@@ -686,7 +716,18 @@ app.post('/api/send', authenticateAPI, async (req, res) => {
             
         } catch (sendError) {
             const responseTime = Date.now() - startTime;
-            await logMessage(clientId, phoneNumber, messageType, 'failed', sendError.message, null, messageText, url || null, caption || null, null, responseTime);
+            
+            await logMessage(clientId, {
+                phoneNumber: phoneNumber,
+                messageType: messageType,
+                messageText: messageText,
+                fileUrl: url || null,
+                caption: caption || null,
+                status: 'failed',
+                errorMessage: sendError.message,
+                responseTime: responseTime
+            });
+            
             throw sendError;
         }
         
