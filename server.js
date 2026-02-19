@@ -842,6 +842,34 @@ app.get('/api/my-messages', authenticateSession, async (req, res) => {
     }
 });
 
+/**
+ * GET /api/admin/messages - Ver todos los mensajes (admin)
+ */
+app.get('/api/admin/messages', authenticateAdmin, async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 1000;
+        
+        const [messages] = await pool.execute(`
+            SELECT * FROM message_logs 
+            ORDER BY created_at DESC 
+            LIMIT ?
+        `, [limit]);
+        
+        res.json({
+            success: true,
+            messages: messages,
+            total: messages.length
+        });
+        
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // ========== ERROR 404 ==========
 
 app.use((req, res) => {

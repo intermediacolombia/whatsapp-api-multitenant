@@ -10,6 +10,8 @@
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
     
     <style>
         * {
@@ -681,9 +683,13 @@
         </div>
         
         <nav class="sidebar-nav">
-            <a href="#" class="nav-item active">
-                <i class="fa-solid fa-grid"></i>
+            <a href="#" class="nav-item active" onclick="showSection('dashboard')" id="nav-dashboard">
+                <i class="fa-solid fa-grip"></i>
                 <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showSection('messages')" id="nav-messages">
+                <i class="fa-solid fa-envelope"></i>
+                <span>Mensajes</span>
             </a>
         </nav>
         
@@ -795,6 +801,48 @@
             </div>
         </div>
     </div>
+
+    <!-- Messages Section -->
+<div id="section-messages" style="display: none;">
+    <div class="table-card">
+        <div class="table-header">
+            <div class="table-title">
+                <i class="fa-solid fa-envelope"></i>
+                <h3>Historial de Mensajes</h3>
+            </div>
+            <div class="filter-bar">
+                <select id="filter-client" class="filter-select" onchange="filterMessages()">
+                    <option value="">Todos los clientes</option>
+                </select>
+                <select id="filter-status" class="filter-select" onchange="filterMessages()">
+                    <option value="">Todos los estados</option>
+                    <option value="sent">Enviados</option>
+                    <option value="failed">Fallidos</option>
+                </select>
+                <button onclick="loadAllMessages()" class="header-btn primary">
+                    <i class="fa-solid fa-rotate"></i>
+                    Actualizar
+                </button>
+            </div>
+        </div>
+        <div class="table-container">
+            <table id="messagesTable" class="display" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Fecha</th>
+                        <th>Teléfono</th>
+                        <th>Tipo</th>
+                        <th>Mensaje</th>
+                        <th>Estado</th>
+                        <th>Tiempo</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
     
     <!-- Modal: Add/Edit Client -->
     <div class="modal" id="client-modal">
@@ -947,7 +995,72 @@
             </div>
         </div>
     </div>
-    
+
+
+    <!-- Modal: Message Details -->
+<div class="modal" id="message-modal" onclick="closeMessageModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3>
+                <i class="fa-solid fa-message"></i>
+                Detalle del Mensaje
+            </h3>
+        </div>
+        <div class="modal-body">
+            <div class="detail-row">
+                <div class="detail-label"><i class="fa-solid fa-user"></i> Cliente</div>
+                <div class="detail-value" id="modal-client"></div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label"><i class="fa-solid fa-calendar"></i> Fecha y Hora</div>
+                <div class="detail-value" id="modal-date"></div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label"><i class="fa-solid fa-phone"></i> Teléfono</div>
+                <div class="detail-value" id="modal-phone"></div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label"><i class="fa-solid fa-tag"></i> Tipo</div>
+                <div class="detail-value" id="modal-type"></div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label"><i class="fa-solid fa-message"></i> Mensaje</div>
+                <div class="detail-value message" id="modal-message"></div>
+            </div>
+            <div class="detail-row" id="file-row" style="display: none;">
+                <div class="detail-label"><i class="fa-solid fa-paperclip"></i> Archivo</div>
+                <div class="detail-value">
+                    <a href="#" id="modal-file" target="_blank" style="color: #1a202c;">Ver archivo</a>
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label"><i class="fa-solid fa-circle-check"></i> Estado</div>
+                <div class="detail-value" id="modal-status"></div>
+            </div>
+            <div class="detail-row" id="error-row" style="display: none;">
+                <div class="detail-label"><i class="fa-solid fa-triangle-exclamation"></i> Error</div>
+                <div class="detail-value" style="background: #fed7d7; color: #742a2a;" id="modal-error"></div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label"><i class="fa-solid fa-clock"></i> Tiempo</div>
+                <div class="detail-value" id="modal-time"></div>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn-modal cancel" onclick="closeMessageModal()">
+                <i class="fa-solid fa-xmark"></i>
+                Cerrar
+            </button>
+        </div>
+    </div>
+</div>
+   
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+<!-- DataTables -->
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
     <script>
         let adminToken = localStorage.getItem('admin_token');
         let clients = [];
@@ -1230,6 +1343,173 @@
         // Iniciar
         loadClients();
         setInterval(loadClients, 5000); // Auto-refresh cada 5 segundos
+
+
+        let messagesTable = null;
+let allMessages = [];
+
+// Mostrar secciones
+function showSection(section) {
+    document.getElementById('section-dashboard')?.style.setProperty('display', 'none');
+    document.getElementById('section-messages')?.style.setProperty('display', 'none');
+    
+    document.getElementById('nav-dashboard')?.classList.remove('active');
+    document.getElementById('nav-messages')?.classList.remove('active');
+    
+    if (section === 'dashboard') {
+        document.getElementById('section-dashboard').style.display = 'block';
+        document.getElementById('nav-dashboard').classList.add('active');
+        document.querySelector('.header-left h1').textContent = 'Dashboard';
+        document.querySelector('.header-left p').textContent = 'Gestión de clientes y sistema';
+    } else if (section === 'messages') {
+        document.getElementById('section-messages').style.display = 'block';
+        document.getElementById('nav-messages').classList.add('active');
+        document.querySelector('.header-left h1').textContent = 'Historial de Mensajes';
+        document.querySelector('.header-left p').textContent = 'Todos los mensajes enviados en el sistema';
+        if (!allMessages.length) loadAllMessages();
+    }
+}
+
+// Cargar todos los mensajes
+async function loadAllMessages() {
+    try {
+        const response = await fetch('/api/admin/messages', {
+            headers: { 'X-Admin-Token': adminToken }
+        });
+        
+        if (!response.ok) throw new Error('Error cargando mensajes');
+        
+        const data = await response.json();
+        allMessages = data.messages || [];
+        
+        // Poblar filtro de clientes
+        const clientFilter = document.getElementById('filter-client');
+        const uniqueClients = [...new Set(allMessages.map(m => m.client_id))];
+        clientFilter.innerHTML = '<option value="">Todos los clientes</option>' +
+            uniqueClients.map(c => `<option value="${c}">${c}</option>`).join('');
+        
+        filterMessages();
+        
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// Filtrar mensajes
+function filterMessages() {
+    const clientFilter = document.getElementById('filter-client').value;
+    const statusFilter = document.getElementById('filter-status').value;
+    
+    let filtered = allMessages;
+    
+    if (clientFilter) {
+        filtered = filtered.filter(m => m.client_id === clientFilter);
+    }
+    
+    if (statusFilter) {
+        filtered = filtered.filter(m => m.status === statusFilter);
+    }
+    
+    renderMessagesTable(filtered);
+}
+
+// Renderizar tabla
+function renderMessagesTable(messages) {
+    if (messagesTable) messagesTable.destroy();
+    
+    $('#messagesTable tbody').empty();
+    
+    messages.forEach(msg => {
+        const row = `
+            <tr onclick="showMessageDetail(${msg.id})" style="cursor: pointer;">
+                <td><strong>${msg.client_id}</strong></td>
+                <td>${formatDate(msg.created_at)}</td>
+                <td>${msg.phone_number}</td>
+                <td><span class="type-badge ${msg.message_type}">${msg.message_type}</span></td>
+                <td>${truncate(msg.message_text, 50)}</td>
+                <td><span class="status-badge ${msg.status}"><i class="fa-solid fa-circle"></i> ${msg.status}</span></td>
+                <td>${msg.response_time ? msg.response_time + 'ms' : '-'}</td>
+            </tr>
+        `;
+        $('#messagesTable tbody').append(row);
+    });
+    
+    messagesTable = $('#messagesTable').DataTable({
+        order: [[1, 'desc']],
+        pageLength: 25,
+        language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' }
+    });
+    
+    window.messagesData = messages;
+}
+
+// Mostrar detalle
+function showMessageDetail(messageId) {
+    const message = window.messagesData.find(m => m.id === messageId);
+    if (!message) return;
+    
+    document.getElementById('modal-client').textContent = message.client_id;
+    document.getElementById('modal-date').textContent = formatDateFull(message.created_at);
+    document.getElementById('modal-phone').textContent = message.phone_number;
+    document.getElementById('modal-type').innerHTML = `<span class="type-badge ${message.message_type}">${message.message_type}</span>`;
+    document.getElementById('modal-message').textContent = message.message_text || 'Sin texto';
+    
+    if (message.file_url) {
+        document.getElementById('file-row').style.display = 'block';
+        document.getElementById('modal-file').href = message.file_url;
+    } else {
+        document.getElementById('file-row').style.display = 'none';
+    }
+    
+    document.getElementById('modal-status').innerHTML = `<span class="status-badge ${message.status}">${message.status}</span>`;
+    
+    if (message.error_message) {
+        document.getElementById('error-row').style.display = 'block';
+        document.getElementById('modal-error').textContent = message.error_message;
+    } else {
+        document.getElementById('error-row').style.display = 'none';
+    }
+    
+    document.getElementById('modal-time').textContent = message.response_time ? message.response_time + ' ms' : 'N/A';
+    document.getElementById('message-modal').classList.add('show');
+}
+
+// Cerrar modal
+function closeMessageModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('message-modal').classList.remove('show');
+}
+
+// Formatear fecha
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleString('es-CO', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function formatDateFull(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleString('es-CO', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+}
+
+// Truncar texto
+function truncate(str, length) {
+    if (!str) return '-';
+    return str.length > length ? str.substring(0, length) + '...' : str;
+}
     </script>
 </body>
 </html>
