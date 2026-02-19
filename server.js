@@ -875,15 +875,15 @@ app.get('/api/messages-by-phone', authenticateAPI, async (req, res) => {
         let query = `
             SELECT 
                 id,
-                phone_number,
+                phone_number AS phonenumber,
                 message_type,
-                message_text,
+                message_text AS message,
                 file_url,
                 caption,
                 status,
                 error_message,
                 message_id,
-                timestamp_sent,
+                timestamp_sent AS timestamp,
                 response_time,
                 created_at
             FROM message_logs
