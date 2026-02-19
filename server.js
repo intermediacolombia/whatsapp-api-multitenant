@@ -660,7 +660,7 @@ app.post('/api/my-disconnect', authenticateSession, async (req, res) => {
     }
 });
 
-// ========== ✨ RUTA MEJORADA CON LOGGING COMPLETO ==========
+// ==========  RUTA MEJORADA CON LOGGING COMPLETO ==========
 
 app.post('/api/send', authenticateAPI, async (req, res) => {
     const startTime = Date.now();
@@ -713,14 +713,16 @@ app.post('/api/send', authenticateAPI, async (req, res) => {
         
         try {
             if (url) {
-                result = await wa.sendFile(phoneNumber, url, caption || messageText);
+                // Extraer nombre del archivo de la URL o usar el filename proporcionado
+                const fileNameToUse = filename || url.split('/').pop().split('?')[0] || 'documento.pdf';
+                result = await wa.sendFile(phoneNumber, url, fileNameToUse, caption || messageText);
             } else {
                 result = await wa.sendMessage(phoneNumber, messageText);
-            }
+        }
             
             const responseTime = Date.now() - startTime;
             
-            // ✨ REGISTRO COMPLETO DEL MENSAJE
+            // REGISTRO COMPLETO DEL MENSAJE
             await logMessage(clientId, {
                 phoneNumber: phoneNumber,
                 messageType: messageType,
