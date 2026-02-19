@@ -110,6 +110,8 @@ class WhatsAppConnection {
     });
 }
 
+   
+
     async sendFile(phoneNumber, fileUrl, fileName, caption = '') {
     if (!this.isConnected) {
         throw new Error('WhatsApp no está conectado');
@@ -164,17 +166,31 @@ class WhatsAppConnection {
         const message = await this.sock.sendMessage(jid, messageContent);
 
         return {
-            success: true,
-            messageId: message.key.id,
-            timestamp: message.messageTimestamp,
-            phone: phoneNumber
-        };
+                success: true,
+                messageId: message.key.id,
+                timestamp: message.messageTimestamp ? Number(message.messageTimestamp) : Date.now(),
+                phone: phoneNumber
+            };
 
     } catch (error) {
         console.error(`❌ Error enviando archivo a ${phoneNumber}:`, error.message);
         throw new Error(`Error enviando archivo: ${error.message}`);
     }
 }
+
+
+async sendMessage(phone, message) {
+        if (!this.isConnected) throw new Error('WhatsApp no conectado');
+        
+        const jid = `${phone.replace(/[^0-9]/g, '')}@s.whatsapp.net`;
+        const result = await this.sock.sendMessage(jid, { text: message });
+        
+        return { 
+            success: true, 
+            messageId: result.key.id,
+            timestamp: result.messageTimestamp ? Number(result.messageTimestamp) : Date.now()
+        };
+    }
 
     getQRImage() { return this.qrCodeImage; }
     getStatus() { return this.isConnected; }
