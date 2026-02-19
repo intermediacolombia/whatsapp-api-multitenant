@@ -850,36 +850,39 @@ app.get('/api/my-messages', authenticateSession, async (req, res) => {
  *   - limit (opcional, por defecto 100)
  *   - offset (opcional, por defecto 0)
  */
+/**
+ * GET /api/messages-by-phone
+ * Devuelve solo mensajes del cliente autenticado hacia un número
+ */
 app.get('/api/messages-by-phone', authenticateAPI, async (req, res) => {
     try {
-        const clientId = req.client.client_id;  // cliente dueño de los mensajes
-        const phonenumber = req.query.phonenumber || req.query.phone;
+        const clientId = req.client.client_id;     // Cliente autenticado gracias a API KEY
+        const phonenumber = req.query.phonenumber;
 
         if (!phonenumber) {
             return res.status(400).json({
                 success: false,
-                error: 'Parámetro "phonenumber" es requerido'
+                error: 'El parámetro phonenumber es obligatorio'
             });
         }
 
+        const cleanPhone = phonenumber.replace(/\D/g, '');
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;
 
-        // Normalizar número (solo dígitos)
-        const cleanPhone = phonenumber.replace(/\D/g, '');
-
-        // 1) Total de mensajes
+        // ------------ TOTAL DE MENSAJES ----------------
         const [countRows] = await pool.execute(
             `SELECT COUNT(*) AS total 
              FROM message_logs 
-             WHERE client_id = ? AND REPLACE(phone_number, ' ', '') LIKE ?`,
+             WHERE client_id = ? 
+               AND REPLACE(phone_number, ' ', '') LIKE ?`,
             [clientId, `%${cleanPhone}%`]
         );
 
-        const total = countRows[0]?.total || 0;
+        const total = countRows[0].total || 0;
 
-        // 2) Datos paginados
-        const [rows] = await pool.execute(
+        // ------------ MENSAJES PAGINADOS ----------------
+        const [messages] = await pool.execute(
             `SELECT 
                 id,
                 phone_number,
@@ -894,38 +897,39 @@ app.get('/api/messages-by-phone', authenticateAPI, async (req, res) => {
                 response_time,
                 created_at
              FROM message_logs
-             WHERE client_id = ? AND REPLACE(phone_number, ' ', '') LIKE ?
+             WHERE client_id = ?
+               AND REPLACE(phone_number, ' ', '') LIKE ?
              ORDER BY created_at DESC
              LIMIT ? OFFSET ?`,
             [clientId, `%${cleanPhone}%`, limit, offset]
         );
 
-        // 3) Construir respuesta con estructura similar a tu PHP original
+        // ------------ CÁLCULO DE PÁGINA ----------------
         const page = Math.floor(offset / limit) + 1;
         const pageCount = total > 0 ? Math.ceil(total / limit) : 1;
 
+        // ------------ RESPUESTA COMPATIBLE CON TU PHP -------------
         res.json({
             success: true,
             data: {
-                count: rows.length,
+                count: messages.length,
                 pageCount: pageCount,
                 page: page,
-                data: rows,                 // aquí van los mensajes
+                data: messages,
                 phone_numbers: [phonenumber]
             },
             statusCode: 200,
-            timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19)
+            timestamp: new Date().toISOString().replace("T", " ").substring(0, 19)
         });
 
     } catch (error) {
-        console.error('❌ Error en /api/messages-by-phone:', error.message);
+        console.error("❌ Error en /api/messages-by-phone:", error.message);
         res.status(500).json({
             success: false,
             error: error.message
         });
     }
 });
-
 
 
 /**
