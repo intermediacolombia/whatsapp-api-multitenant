@@ -41,7 +41,7 @@ class WhatsAppConnection {
             creds: state.creds,
             keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' })),
         },
-        logger: pino({ level: 'fatal' }),
+        //logger: pino({ level: 'fatal' }),
         browser: ['API WhatsApp', 'Chrome', '1.0.0'],
         shouldIgnoreJid: () => false,
     msgRetryCounterMap: {},
