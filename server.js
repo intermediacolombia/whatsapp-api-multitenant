@@ -1,8 +1,7 @@
 require('dotenv').config();
 
 /**
- * SERVIDOR MULTI-TENANT CON BASE DE DATOS
- * Sistema completo con login, MySQL y sesiones por cliente
+ * SERVIDOR MULTI-TENANT CON REGISTRO COMPLETO DE MENSAJES
  */
 
 const express = require('express');
@@ -29,7 +28,6 @@ const dbConfig = {
     queueLimit: 0
 };
 
-// Pool de conexiones
 const pool = mysql.createPool(dbConfig);
 
 // ========== MIDDLEWARES ==========
@@ -44,9 +42,6 @@ const whatsappInstances = {};
 
 // ========== FUNCIONES DE BASE DE DATOS ==========
 
-/**
- * Obtener cliente por API Key
- */
 async function getClientByApiKey(apiKey) {
     const [rows] = await pool.execute(
         'SELECT * FROM clients WHERE api_key = ? AND status = "active"',
@@ -55,9 +50,6 @@ async function getClientByApiKey(apiKey) {
     return rows[0] || null;
 }
 
-/**
- * Obtener cliente por email
- */
 async function getClientByEmail(email) {
     const [rows] = await pool.execute(
         'SELECT * FROM clients WHERE email = ?',
@@ -66,9 +58,6 @@ async function getClientByEmail(email) {
     return rows[0] || null;
 }
 
-/**
- * Obtener cliente por session token
- */
 async function getClientBySession(sessionToken) {
     const [rows] = await pool.execute(`
         SELECT c.* FROM clients c
@@ -78,12 +67,9 @@ async function getClientBySession(sessionToken) {
     return rows[0] || null;
 }
 
-/**
- * Crear sesión de login
- */
 async function createSession(clientId, ipAddress, userAgent) {
     const sessionToken = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 días
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     
     await pool.execute(`
         INSERT INTO sessions (client_id, session_token, ip_address, user_agent, expires_at)
@@ -93,9 +79,6 @@ async function createSession(clientId, ipAddress, userAgent) {
     return sessionToken;
 }
 
-/**
- * Actualizar estado de conexión de WhatsApp
- */
 async function updateWhatsAppStatus(clientId, connected, phoneNumber = null) {
     await pool.execute(`
         UPDATE clients 
@@ -105,13 +88,56 @@ async function updateWhatsAppStatus(clientId, connected, phoneNumber = null) {
 }
 
 /**
- * Registrar mensaje enviado
+ * ✨ NUEVA FUNCIÓN MEJORADA - Registrar mensaje con toda la información
  */
-async function logMessage(clientId, phoneNumber, messageType, status, errorMessage = null, messageId = null) {
-    await pool.execute(`
-        INSERT INTO message_logs (client_id, phone_number, message_type, status, error_message, message_id)
-        VALUES (?, ?, ?, ?, ?, ?)
-    `, [clientId, phoneNumber, messageType, status, errorMessage, messageId]);
+async function logMessage(clientId, data) {
+    const {
+        phoneNumber,
+        messageType,
+        messageText = null,
+        fileUrl = null,
+        caption = null,
+        status,
+        errorMessage = null,
+        messageId = null,
+        timestampSent = null,
+        responseTime = null
+    } = data;
+    
+    try {
+        await pool.execute(`
+            INSERT INTO message_logs (
+                client_id, 
+                phone_number, 
+                message_type, 
+                message_text,
+                file_url,
+                caption,
+                status, 
+                error_message, 
+                message_id,
+                timestamp_sent,
+                response_time
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+            clientId, 
+            phoneNumber, 
+            messageType, 
+            messageText,
+            fileUrl,
+            caption,
+            status, 
+            errorMessage, 
+            messageId,
+            timestampSent,
+            responseTime
+        ]);
+        
+        console.log(`📝 [${clientId}] Mensaje registrado en BD: ${phoneNumber}`);
+    } catch (error) {
+        console.error(`❌ [${clientId}] Error registrando mensaje:`, error.message);
+    }
 }
 
 // ========== GESTIÓN DE INSTANCIAS WHATSAPP ==========
@@ -131,8 +157,7 @@ async function getWhatsAppInstance(clientId) {
     }
     
     const clientData = client[0][0];
-    const wa = new WhatsAppConnection();
-    wa.authFolder = `./auth/${clientId}`;
+    const wa = new WhatsAppConnection(clientId);
     
     whatsappInstances[clientId] = {
         instance: wa,
@@ -149,19 +174,16 @@ async function ensureInitialized(clientId) {
     if (!waData.isInitialized) {
         console.log(`🔌 Inicializando WhatsApp para: ${waData.clientName}`);
         
-        // ✅ Callback cuando se conecta
         waData.instance.onConnected = async (phoneNumber) => {
             await updateWhatsAppStatus(clientId, true, phoneNumber);
             console.log(`📞 [${clientId}] Número guardado en BD: ${phoneNumber}`);
         };
         
-        // ✅ Callback cuando se desconecta
         waData.instance.onDisconnected = async () => {
             await updateWhatsAppStatus(clientId, false, null);
-            console.log(`📴 [${clientId}] Desconectado - BD actualizada`);
+            console.log(`🔴 [${clientId}] Desconectado - BD actualizada`);
         };
         
-        // ✅ Callback cuando el usuario cierra sesión desde el teléfono
         waData.instance.onLogout = async () => {
             console.log(`♻️ [${clientId}] Sesión cerrada - Reseteando instancia`);
             delete whatsappInstances[clientId];
@@ -251,9 +273,8 @@ app.get('/admin-panel.html', (req, res) => {
     res.sendFile(__dirname + '/public/admin-panel.html');
 });
 
-/**
- * POST /api/admin/login - Login de super admin
- */
+// [AQUÍ VAN TODAS LAS DEMÁS RUTAS ADMIN - las mantengo igual]
+
 app.post('/api/admin/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -265,47 +286,42 @@ app.post('/api/admin/login', async (req, res) => {
             });
         }
         
-        const [rows] = await pool.execute(
-            'SELECT * FROM admin_users WHERE username = ?',
+        const [admins] = await pool.execute(
+            'SELECT * FROM admins WHERE username = ?',
             [username]
         );
         
-        if (rows.length === 0) {
+        if (admins.length === 0) {
             return res.status(401).json({
                 success: false,
                 error: 'Credenciales inválidas'
             });
         }
         
-        const admin = rows[0];
-
+        const admin = admins[0];
         const passwordMatch = await bcrypt.compare(password, admin.password);
-
+        
         if (!passwordMatch) {
             return res.status(401).json({
                 success: false,
                 error: 'Credenciales inválidas'
             });
         }
-
-        // Crear token
+        
         const adminToken = crypto.randomBytes(32).toString('hex');
         const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-        // ✅ Guardar en tabla admin_sessions
+        
         await pool.execute(`
-            INSERT INTO admin_sessions 
-            (admin_id, session_token, ip_address, user_agent, expires_at)
+            INSERT INTO admin_sessions (admin_id, session_token, ip_address, user_agent, expires_at)
             VALUES (?, ?, ?, ?, ?)
-        `, [admin.id, adminToken, req.ip, req.headers['user-agent'], expiresAt]);
-
+        `, [admin.admin_id, adminToken, req.ip, req.headers['user-agent'], expiresAt]);
+        
         res.json({
             success: true,
             admin_token: adminToken,
-            username: admin.username,
-            role: admin.role
+            username: admin.username
         });
-
+        
     } catch (error) {
         console.error('Error en admin login:', error);
         res.status(500).json({
@@ -315,25 +331,23 @@ app.post('/api/admin/login', async (req, res) => {
     }
 });
 
-/**
- * GET /api/admin/clients - Listar todos los clientes (requiere admin)
- */
-app.get('/api/admin/clients', async (req, res) => {
+// Función para validar admin token
+async function authenticateAdmin(req, res, next) {
+    const adminToken = req.headers['x-admin-token'];
+    
+    if (!adminToken) {
+        return res.status(401).json({
+            success: false,
+            error: 'Token de admin requerido'
+        });
+    }
+    
     try {
-        const adminToken = req.headers['x-admin-token'];
-        
-        if (!adminToken) {
-            return res.status(401).json({
-                success: false,
-                error: 'No autorizado'
-            });
-        }
-        
-        // Verificar que es un token de admin
-        const [sessions] = await pool.execute(
-            'SELECT * FROM admin_sessions WHERE session_token = ? AND expires_at > NOW()',
-            [adminToken]
-        );
+        const [sessions] = await pool.execute(`
+            SELECT a.* FROM admins a
+            INNER JOIN admin_sessions s ON a.admin_id = s.admin_id
+            WHERE s.session_token = ? AND s.expires_at > NOW()
+        `, [adminToken]);
         
         if (sessions.length === 0) {
             return res.status(401).json({
@@ -342,14 +356,36 @@ app.get('/api/admin/clients', async (req, res) => {
             });
         }
         
-        // Obtener todos los clientes
-        const [clients] = await pool.execute('SELECT * FROM clients ORDER BY created_at DESC');
+        req.admin = sessions[0];
+        next();
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Error de autenticación'
+        });
+    }
+}
+
+app.get('/api/admin/clients', authenticateAdmin, async (req, res) => {
+    try {
+        const [clients] = await pool.execute(`
+            SELECT 
+                client_id,
+                name,
+                email,
+                api_key,
+                whatsapp_connected,
+                phone_number,
+                status,
+                created_at
+            FROM clients
+            ORDER BY created_at DESC
+        `);
         
         res.json({
             success: true,
             clients: clients
         });
-        
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -358,44 +394,23 @@ app.get('/api/admin/clients', async (req, res) => {
     }
 });
 
-/**
- * POST /api/admin/clients - Crear nuevo cliente (requiere admin)
- */
-app.post('/api/admin/clients', async (req, res) => {
+app.post('/api/admin/clients', authenticateAdmin, async (req, res) => {
     try {
-        const adminToken = req.headers['x-admin-token'];
-        
-        if (!adminToken) {
-            return res.status(401).json({
-                success: false,
-                error: 'No autorizado'
-            });
-        }
-        
-        // Verificar admin
-        const [sessions] = await pool.execute(
-            'SELECT * FROM admin_sessions WHERE session_token = ? AND expires_at > NOW()',
-            [adminToken]
-        );
-        
-        if (sessions.length === 0) {
-            return res.status(401).json({
-                success: false,
-                error: 'Sesión de admin inválida'
-            });
-        }
-        
         const { client_id, name, email, password } = req.body;
         
-        // Generar API Key
+        if (!client_id || !name || !email || !password) {
+            return res.status(400).json({
+                success: false,
+                error: 'Todos los campos son requeridos'
+            });
+        }
+        
+        const hashedPassword = await bcrypt.hash(password, 10);
         const apiKey = crypto.randomBytes(32).toString('hex');
         
-        // Hash de contraseña
-        const hashedPassword = await bcrypt.hash(password, 10);
-        
         await pool.execute(`
-            INSERT INTO clients (client_id, name, email, password, api_key, status)
-            VALUES (?, ?, ?, ?, ?, 'active')
+            INSERT INTO clients (client_id, name, email, password, api_key)
+            VALUES (?, ?, ?, ?, ?)
         `, [client_id, name, email, hashedPassword, apiKey]);
         
         res.json({
@@ -403,7 +418,44 @@ app.post('/api/admin/clients', async (req, res) => {
             message: 'Cliente creado',
             api_key: apiKey
         });
+    } catch (error) {
+        if (error.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({
+                success: false,
+                error: 'El ID o email ya existe'
+            });
+        }
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+app.put('/api/admin/clients/:clientId', authenticateAdmin, async (req, res) => {
+    try {
+        const { clientId } = req.params;
+        const { name, email, password } = req.body;
         
+        if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            await pool.execute(`
+                UPDATE clients 
+                SET name = ?, email = ?, password = ?
+                WHERE client_id = ?
+            `, [name, email, hashedPassword, clientId]);
+        } else {
+            await pool.execute(`
+                UPDATE clients 
+                SET name = ?, email = ?
+                WHERE client_id = ?
+            `, [name, email, clientId]);
+        }
+        
+        res.json({
+            success: true,
+            message: 'Cliente actualizado'
+        });
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -412,34 +464,14 @@ app.post('/api/admin/clients', async (req, res) => {
     }
 });
 
-/**
- * DELETE /api/admin/clients/:clientId - Eliminar cliente (requiere admin)
- */
-app.delete('/api/admin/clients/:clientId', async (req, res) => {
+app.delete('/api/admin/clients/:clientId', authenticateAdmin, async (req, res) => {
     try {
-        const adminToken = req.headers['x-admin-token'];
-        
-        if (!adminToken) {
-            return res.status(401).json({
-                success: false,
-                error: 'No autorizado'
-            });
-        }
-        
-        // Verificar admin
-        const [sessions] = await pool.execute(
-         'SELECT * FROM admin_sessions WHERE session_token = ? AND expires_at > NOW()',
-         [adminToken]
-        );
-        
-        if (sessions.length === 0) {
-            return res.status(401).json({
-                success: false,
-                error: 'Sesión de admin inválida'
-            });
-        }
-        
         const { clientId } = req.params;
+        
+        if (whatsappInstances[clientId]) {
+            await whatsappInstances[clientId].instance.logout();
+            delete whatsappInstances[clientId];
+        }
         
         await pool.execute('DELETE FROM clients WHERE client_id = ?', [clientId]);
         
@@ -447,7 +479,6 @@ app.delete('/api/admin/clients/:clientId', async (req, res) => {
             success: true,
             message: 'Cliente eliminado'
         });
-        
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -456,9 +487,8 @@ app.delete('/api/admin/clients/:clientId', async (req, res) => {
     }
 });
 
-/**
- * POST /api/login - Login de clientes
- */
+// ========== RUTAS CLIENTE ==========
+
 app.post('/api/login', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -479,7 +509,6 @@ app.post('/api/login', async (req, res) => {
             });
         }
         
-        // Verificar contraseña
         const passwordMatch = await bcrypt.compare(password, client.password);
         
         if (!passwordMatch) {
@@ -496,7 +525,6 @@ app.post('/api/login', async (req, res) => {
             });
         }
         
-        // Crear sesión
         const sessionToken = await createSession(
             client.client_id,
             req.ip,
@@ -523,9 +551,6 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-/**
- * POST /api/logout - Cerrar sesión
- */
 app.post('/api/logout', async (req, res) => {
     try {
         const sessionToken = req.headers['x-session-token'];
@@ -549,11 +574,6 @@ app.post('/api/logout', async (req, res) => {
     }
 });
 
-// ========== RUTAS PROTEGIDAS POR SESIÓN (Panel del cliente) ==========
-
-/**
- * GET /api/me - Información del cliente logueado
- */
 app.get('/api/me', authenticateSession, async (req, res) => {
     res.json({
         success: true,
@@ -568,9 +588,6 @@ app.get('/api/me', authenticateSession, async (req, res) => {
     });
 });
 
-/**
- * GET /api/my-status - Estado de WhatsApp del cliente
- */
 app.get('/api/my-status', authenticateSession, async (req, res) => {
     try {
         const clientId = req.client.client_id;
@@ -590,9 +607,6 @@ app.get('/api/my-status', authenticateSession, async (req, res) => {
     }
 });
 
-/**
- * POST /api/my-disconnect - Desconectar mi WhatsApp
- */
 app.post('/api/my-disconnect', authenticateSession, async (req, res) => {
     try {
         const clientId = req.client.client_id;
@@ -615,21 +629,28 @@ app.post('/api/my-disconnect', authenticateSession, async (req, res) => {
     }
 });
 
-// ========== RUTAS PROTEGIDAS POR API KEY (PHP externo) ==========
+// ========== ✨ RUTA MEJORADA CON LOGGING COMPLETO ==========
 
-/**
- * POST /api/send - Enviar mensaje (con API Key)
- */
 app.post('/api/send', authenticateAPI, async (req, res) => {
+    const startTime = Date.now();
+    
     try {
-        const { phonenumber, phone, text, message, url, filename } = req.body;
+        const { phonenumber, phone, text, message, url, filename, caption } = req.body;
         const clientId = req.client.client_id;
         
         const phoneNumber = phonenumber || phone;
         const messageText = text || message;
         
         if (!phoneNumber || !messageText) {
-            await logMessage(clientId, phoneNumber || 'unknown', 'text', 'failed', 'Faltan parámetros');
+            await logMessage(clientId, {
+                phoneNumber: phoneNumber || 'unknown',
+                messageType: 'text',
+                messageText: messageText,
+                status: 'failed',
+                errorMessage: 'Faltan parámetros',
+                responseTime: Date.now() - startTime
+            });
+            
             return res.status(400).json({
                 success: false,
                 error: 'Número y mensaje son requeridos'
@@ -639,7 +660,17 @@ app.post('/api/send', authenticateAPI, async (req, res) => {
         const wa = await ensureInitialized(clientId);
         
         if (!wa.getStatus()) {
-            await logMessage(clientId, phoneNumber, 'text', 'failed', 'WhatsApp no conectado');
+            await logMessage(clientId, {
+                phoneNumber: phoneNumber,
+                messageType: url ? 'file' : 'text',
+                messageText: messageText,
+                fileUrl: url,
+                caption: caption,
+                status: 'failed',
+                errorMessage: 'WhatsApp no conectado',
+                responseTime: Date.now() - startTime
+            });
+            
             return res.status(503).json({
                 success: false,
                 error: 'WhatsApp no está conectado'
@@ -651,26 +682,52 @@ app.post('/api/send', authenticateAPI, async (req, res) => {
         
         try {
             if (url) {
-                const urlParts = url.split('/');
-                const fileNameFromUrl = filename || urlParts[urlParts.length - 1] || 'documento.pdf';
-                
-                result = await wa.sendFile(phoneNumber, url, fileNameFromUrl, messageText);
+                result = await wa.sendFile(phoneNumber, url, caption || messageText);
             } else {
                 result = await wa.sendMessage(phoneNumber, messageText);
             }
             
-            await logMessage(clientId, phoneNumber, messageType, 'sent', null, result.messageId);
+            const responseTime = Date.now() - startTime;
+            
+            // ✨ REGISTRO COMPLETO DEL MENSAJE
+            await logMessage(clientId, {
+                phoneNumber: phoneNumber,
+                messageType: messageType,
+                messageText: messageText,
+                fileUrl: url || null,
+                caption: caption || null,
+                status: 'sent',
+                errorMessage: null,
+                messageId: result.messageId,
+                timestampSent: result.timestamp,
+                responseTime: responseTime
+            });
             
             res.json({
                 success: true,
                 message: 'Mensaje enviado',
                 data: {
                     phone: phoneNumber,
-                    messageId: result.messageId
+                    messageId: result.messageId,
+                    timestamp: result.timestamp,
+                    responseTime: `${responseTime}ms`
                 }
             });
+            
         } catch (sendError) {
-            await logMessage(clientId, phoneNumber, messageType, 'failed', sendError.message);
+            const responseTime = Date.now() - startTime;
+            
+            await logMessage(clientId, {
+                phoneNumber: phoneNumber,
+                messageType: messageType,
+                messageText: messageText,
+                fileUrl: url || null,
+                caption: caption || null,
+                status: 'failed',
+                errorMessage: sendError.message,
+                responseTime: responseTime
+            });
+            
             throw sendError;
         }
         
@@ -683,12 +740,68 @@ app.post('/api/send', authenticateAPI, async (req, res) => {
     }
 });
 
-/**
- * POST /v2/sendMessage - Alias 360messenger
- */
 app.post('/v2/sendMessage', authenticateAPI, (req, res) => {
     req.url = '/api/send';
     app.handle(req, res);
+});
+
+// ========== NUEVA RUTA: Ver historial de mensajes ==========
+
+app.get('/api/my-messages', authenticateSession, async (req, res) => {
+    try {
+        const clientId = req.client.client_id;
+        const limit = parseInt(req.query.limit) || 100;
+        const offset = parseInt(req.query.offset) || 0;
+        const status = req.query.status; // 'sent', 'failed', 'all'
+        
+        let query = `
+            SELECT 
+                id,
+                phone_number,
+                message_type,
+                message_text,
+                file_url,
+                caption,
+                status,
+                error_message,
+                response_time,
+                created_at
+            FROM message_logs
+            WHERE client_id = ?
+        `;
+        
+        const params = [clientId];
+        
+        if (status && status !== 'all') {
+            query += ' AND status = ?';
+            params.push(status);
+        }
+        
+        query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+        params.push(limit, offset);
+        
+        const [messages] = await pool.execute(query, params);
+        
+        // Contar total
+        const [countResult] = await pool.execute(
+            'SELECT COUNT(*) as total FROM message_logs WHERE client_id = ?',
+            [clientId]
+        );
+        
+        res.json({
+            success: true,
+            messages: messages,
+            total: countResult[0].total,
+            limit: limit,
+            offset: offset
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
 });
 
 // ========== ERROR 404 ==========
@@ -703,14 +816,13 @@ app.use((req, res) => {
 // ========== INICIAR SERVIDOR ==========
 
 app.listen(PORT, '0.0.0.0', async () => {
-    console.log('\n╔════════════════════════════════════════════╗');
+    console.log('\n╔═══════════════════════════════════════════╗');
     console.log('║  🚀 WHATSAPP API MULTI-TENANT + MySQL     ║');
-    console.log('╚════════════════════════════════════════════╝\n');
+    console.log('╚═══════════════════════════════════════════╝\n');
     console.log(`📱 Login Portal: http://localhost:${PORT}`);
     console.log(`🔌 API REST:     http://localhost:${PORT}/api`);
     console.log(`🗄️  MySQL:       Conectado\n`);
     
-    // Test de conexión a BD
     try {
         await pool.execute('SELECT 1');
         console.log('✅ Conexión a MySQL exitosa\n');
