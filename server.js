@@ -856,7 +856,7 @@ app.get('/api/my-messages', authenticateSession, async (req, res) => {
  */
 app.get('/api/messages-by-phone', authenticateAPI, async (req, res) => {
     try {
-        const clientId = req.client.client_id;     // Cliente autenticado gracias a API KEY
+        const clientId = req.client.client_id;
         const phonenumber = req.query.phonenumber;
 
         if (!phonenumber) {
@@ -869,21 +869,11 @@ app.get('/api/messages-by-phone', authenticateAPI, async (req, res) => {
         const cleanPhone = phonenumber.replace(/\D/g, '');
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;
+        const status = req.query.status;
 
-        // ------------ TOTAL DE MENSAJES ----------------
-        const [countRows] = await pool.execute(
-            `SELECT COUNT(*) AS total 
-             FROM message_logs 
-             WHERE client_id = ? 
-               AND REPLACE(phone_number, ' ', '') LIKE ?`,
-            [clientId, `%${cleanPhone}%`]
-        );
-
-        const total = countRows[0].total || 0;
-
-        // ------------ MENSAJES PAGINADOS ----------------
-        const [messages] = await pool.execute(
-            `SELECT 
+        // ✅ LIMIT y OFFSET interpolados igual que en /api/my-messages
+        let query = `
+            SELECT 
                 id,
                 phone_number,
                 message_type,
@@ -896,19 +886,34 @@ app.get('/api/messages-by-phone', authenticateAPI, async (req, res) => {
                 timestamp_sent,
                 response_time,
                 created_at
-             FROM message_logs
-             WHERE client_id = ?
-               AND REPLACE(phone_number, ' ', '') LIKE ?
-             ORDER BY created_at DESC
-             LIMIT ? OFFSET ?`,
-            [clientId, `%${cleanPhone}%`, limit, offset]
+            FROM message_logs
+            WHERE client_id = ?
+              AND REPLACE(phone_number, ' ', '') LIKE ?
+        `;
+
+        const params = [clientId, `%${cleanPhone}%`];
+
+        if (status && status !== 'all') {
+            query += ' AND status = ?';
+            params.push(status);
+        }
+
+        query += ` ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+
+        const [messages] = await pool.execute(query, params);
+
+        const [countResult] = await pool.execute(
+            `SELECT COUNT(*) as total 
+             FROM message_logs 
+             WHERE client_id = ? 
+               AND REPLACE(phone_number, ' ', '') LIKE ?`,
+            [clientId, `%${cleanPhone}%`]
         );
 
-        // ------------ CÁLCULO DE PÁGINA ----------------
+        const total = countResult[0].total || 0;
         const page = Math.floor(offset / limit) + 1;
         const pageCount = total > 0 ? Math.ceil(total / limit) : 1;
 
-        // ------------ RESPUESTA COMPATIBLE CON TU PHP -------------
         res.json({
             success: true,
             data: {
@@ -923,7 +928,7 @@ app.get('/api/messages-by-phone', authenticateAPI, async (req, res) => {
         });
 
     } catch (error) {
-        console.error("❌ Error en /api/messages-by-phone:", error.message);
+        console.error('❌ Error en /api/messages-by-phone:', error.message);
         res.status(500).json({
             success: false,
             error: error.message
