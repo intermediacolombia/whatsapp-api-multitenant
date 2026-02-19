@@ -872,25 +872,24 @@ app.get('/api/messages-by-phone', authenticateAPI, async (req, res) => {
         const status = req.query.status;
 
         // ✅ LIMIT y OFFSET interpolados igual que en /api/my-messages
-        let query = `
-            SELECT 
-                id,
-                phone_number AS phonenumber,
-                message_type,
-                message_text AS message,
-                file_url,
-                caption,
-                status,
-                error_message,
-                message_id,
-                timestamp_sent AS timestamp,
-                response_time,
-                created_at
-            FROM message_logs
-            WHERE client_id = ?
-              AND REPLACE(phone_number, ' ', '') LIKE ?
-        `;
-
+       let query = `
+    SELECT 
+        id,
+        IFNULL(phone_number, '') AS phonenumber,
+        message_type,
+        IFNULL(message_text, '') AS message,  -- Evita que 'message' sea null
+        IFNULL(file_url, '') AS file_url,
+        IFNULL(caption, '') AS caption,
+        status,
+        error_message,
+        message_id,
+        IFNULL(timestamp_sent, 0) AS timestamp,
+        response_time,
+        created_at
+    FROM message_logs
+    WHERE client_id = ?
+      AND REPLACE(phone_number, ' ', '') LIKE ?
+`;
         const params = [clientId, `%${cleanPhone}%`];
 
         if (status && status !== 'all') {
