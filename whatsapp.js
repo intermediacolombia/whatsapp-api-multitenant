@@ -14,6 +14,8 @@ const QRCode = require('qrcode');
 const pino = require('pino');
 const fs = require('fs');
 
+process.env.WA_NO_VERBOSE = 'true';
+
 class WhatsAppConnection {
     constructor(clientId) {
         this.clientId = clientId;
