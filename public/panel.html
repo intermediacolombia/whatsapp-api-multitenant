@@ -1513,6 +1513,146 @@ curl_close($ch);
             }
         }
         
+        // ========== FUNCIONES DE HISTORIAL ==========
+        
+        // Cargar mensajes
+        async function loadMessages() {
+            try {
+                showAlert('Cargando mensajes...', 'success');
+                
+                const response = await fetch('/api/my-messages?limit=1000', {
+                    headers: {
+                        'X-Session-Token': sessionToken
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Destruir tabla existente
+                    if (messagesTable) {
+                        messagesTable.destroy();
+                    }
+                    
+                    // Limpiar tbody
+                    $('#messagesTable tbody').empty();
+                    
+                    // Agregar filas
+                    data.messages.forEach(msg => {
+                        const row = `
+                            <tr onclick="showMessageDetail(${msg.id})" style="cursor: pointer;">
+                                <td>${formatDate(msg.created_at)}</td>
+                                <td>${msg.phone_number}</td>
+                                <td><span class="type-badge ${msg.message_type}">${msg.message_type}</span></td>
+                                <td>${truncate(msg.message_text, 50)}</td>
+                                <td><span class="status-badge ${msg.status}"><i class="fa-solid fa-circle"></i> ${msg.status}</span></td>
+                                <td>${msg.response_time ? msg.response_time + 'ms' : '-'}</td>
+                            </tr>
+                        `;
+                        $('#messagesTable tbody').append(row);
+                    });
+                    
+                    // Inicializar DataTable
+                    messagesTable = $('#messagesTable').DataTable({
+                        order: [[0, 'desc']],
+                        pageLength: 25,
+                        language: {
+                            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                        }
+                    });
+                    
+                    // Guardar mensajes en variable global
+                    window.messagesData = data.messages;
+                    
+                    showAlert(`${data.messages.length} mensajes cargados`, 'success');
+                }
+                
+            } catch (error) {
+                console.error('Error cargando mensajes:', error);
+                showAlert('Error cargando mensajes', 'error');
+            }
+        }
+        
+        // Mostrar detalle del mensaje
+        function showMessageDetail(messageId) {
+            const message = window.messagesData.find(m => m.id === messageId);
+            if (!message) return;
+            
+            document.getElementById('modal-date').textContent = formatDateFull(message.created_at);
+            document.getElementById('modal-phone').textContent = message.phone_number;
+            document.getElementById('modal-type').innerHTML = `<span class="type-badge ${message.message_type}">${message.message_type}</span>`;
+            document.getElementById('modal-message').textContent = message.message_text || 'Sin mensaje de texto';
+            
+            // Archivo
+            if (message.file_url) {
+                document.getElementById('file-row').style.display = 'block';
+                document.getElementById('modal-file').href = message.file_url;
+            } else {
+                document.getElementById('file-row').style.display = 'none';
+            }
+            
+            // Caption
+            if (message.caption) {
+                document.getElementById('caption-row').style.display = 'block';
+                document.getElementById('modal-caption').textContent = message.caption;
+            } else {
+                document.getElementById('caption-row').style.display = 'none';
+            }
+            
+            // Estado
+            document.getElementById('modal-status').innerHTML = `<span class="status-badge ${message.status}">${message.status}</span>`;
+            
+            // Error
+            if (message.error_message) {
+                document.getElementById('error-row').style.display = 'block';
+                document.getElementById('modal-error').textContent = message.error_message;
+            } else {
+                document.getElementById('error-row').style.display = 'none';
+            }
+            
+            document.getElementById('modal-time').textContent = message.response_time ? message.response_time + ' ms' : 'No disponible';
+            document.getElementById('modal-id').textContent = message.message_id || 'No disponible';
+            
+            document.getElementById('message-modal').classList.add('show');
+        }
+        
+        // Cerrar modal
+        function closeMessageModal(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('message-modal').classList.remove('show');
+        }
+        
+        // Formatear fecha
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('es-CO', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        function formatDateFull(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('es-CO', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+        
+        // Truncar texto
+        function truncate(str, length) {
+            if (!str) return '-';
+            return str.length > length ? str.substring(0, length) + '...' : str;
+        }
+        
         // Enviar mensaje
         async function sendMessage(event) {
             event.preventDefault();
@@ -1562,10 +1702,12 @@ curl_close($ch);
         function showSection(section) {
             document.getElementById('section-dashboard').style.display = 'none';
             document.getElementById('section-send').style.display = 'none';
+            document.getElementById('section-history').style.display = 'none';
             document.getElementById('section-docs').style.display = 'none';
             
             document.getElementById('nav-dashboard').classList.remove('active');
             document.getElementById('nav-send').classList.remove('active');
+            document.getElementById('nav-history').classList.remove('active');
             document.getElementById('nav-docs').classList.remove('active');
             
             if (section === 'dashboard') {
@@ -1578,6 +1720,15 @@ curl_close($ch);
                 document.getElementById('nav-send').classList.add('active');
                 document.getElementById('page-title').textContent = 'Enviar Mensaje';
                 document.getElementById('page-subtitle').textContent = 'Envía mensajes de WhatsApp desde tu aplicación';
+            } else if (section === 'history') {
+                document.getElementById('section-history').style.display = 'block';
+                document.getElementById('nav-history').classList.add('active');
+                document.getElementById('page-title').textContent = 'Historial de Mensajes';
+                document.getElementById('page-subtitle').textContent = 'Consulta todos los mensajes enviados';
+                // Cargar mensajes al entrar a la sección
+                if (!window.messagesData) {
+                    loadMessages();
+                }
             } else if (section === 'docs') {
                 document.getElementById('section-docs').style.display = 'block';
                 document.getElementById('nav-docs').classList.add('active');
