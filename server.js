@@ -17,9 +17,6 @@ process.stderr.write = (chunk, encoding, callback) => {
 
 require('dotenv').config();
 
-process.env.WA_NO_VERBOSE = 'true';
-process.env.DEBUG = '';
-
 /**
  * SERVIDOR MULTI-TENANT CON REGISTRO COMPLETO DE MENSAJES
  */
