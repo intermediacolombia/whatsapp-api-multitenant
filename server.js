@@ -851,11 +851,10 @@ app.get('/api/admin/messages', authenticateAdmin, async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 1000;
         
-        const [messages] = await pool.execute(`
-            SELECT * FROM message_logs 
-            ORDER BY created_at DESC 
-            LIMIT ?
-        `, [limit]);
+        // ✅ CORRECCIÓN: No usar prepared statement para LIMIT
+        const [messages] = await pool.execute(
+            `SELECT * FROM message_logs ORDER BY created_at DESC LIMIT ${limit}`
+        );
         
         res.json({
             success: true,
@@ -864,7 +863,7 @@ app.get('/api/admin/messages', authenticateAdmin, async (req, res) => {
         });
         
     } catch (error) {
-        console.error('Error:', error);
+        console.error('❌ Error en /api/admin/messages:', error);
         res.status(500).json({
             success: false,
             error: error.message
