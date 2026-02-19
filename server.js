@@ -842,6 +842,90 @@ app.get('/api/my-messages', authenticateSession, async (req, res) => {
     }
 });
 
+/**
+ * GET /api/messages-by-phone
+ * Devuelve mensajes enviados a un número específico (similar a 360messenger)
+ * Parámetros:
+ *   - phonenumber (obligatorio)
+ *   - limit (opcional, por defecto 100)
+ *   - offset (opcional, por defecto 0)
+ */
+app.get('/api/messages-by-phone', authenticateAPI, async (req, res) => {
+    try {
+        const clientId = req.client.client_id;  // cliente dueño de los mensajes
+        const phonenumber = req.query.phonenumber || req.query.phone;
+
+        if (!phonenumber) {
+            return res.status(400).json({
+                success: false,
+                error: 'Parámetro "phonenumber" es requerido'
+            });
+        }
+
+        const limit = parseInt(req.query.limit) || 100;
+        const offset = parseInt(req.query.offset) || 0;
+
+        // Normalizar número (solo dígitos)
+        const cleanPhone = phonenumber.replace(/\D/g, '');
+
+        // 1) Total de mensajes
+        const [countRows] = await pool.execute(
+            `SELECT COUNT(*) AS total 
+             FROM message_logs 
+             WHERE client_id = ? AND REPLACE(phone_number, ' ', '') LIKE ?`,
+            [clientId, `%${cleanPhone}%`]
+        );
+
+        const total = countRows[0]?.total || 0;
+
+        // 2) Datos paginados
+        const [rows] = await pool.execute(
+            `SELECT 
+                id,
+                phone_number,
+                message_type,
+                message_text,
+                file_url,
+                caption,
+                status,
+                error_message,
+                message_id,
+                timestamp_sent,
+                response_time,
+                created_at
+             FROM message_logs
+             WHERE client_id = ? AND REPLACE(phone_number, ' ', '') LIKE ?
+             ORDER BY created_at DESC
+             LIMIT ? OFFSET ?`,
+            [clientId, `%${cleanPhone}%`, limit, offset]
+        );
+
+        // 3) Construir respuesta con estructura similar a tu PHP original
+        const page = Math.floor(offset / limit) + 1;
+        const pageCount = total > 0 ? Math.ceil(total / limit) : 1;
+
+        res.json({
+            success: true,
+            data: {
+                count: rows.length,
+                pageCount: pageCount,
+                page: page,
+                data: rows,                 // aquí van los mensajes
+                phone_numbers: [phonenumber]
+            },
+            statusCode: 200,
+            timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19)
+        });
+
+    } catch (error) {
+        console.error('❌ Error en /api/messages-by-phone:', error.message);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 
 
 /**
