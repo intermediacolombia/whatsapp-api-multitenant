@@ -317,7 +317,7 @@ app.post('/api/admin/login', async (req, res) => {
         }
         
         const [admins] = await pool.execute(
-            'SELECT * FROM admins WHERE username = ?',
+            'SELECT * FROM admin_users WHERE username = ?',
             [username]
         );
         
@@ -344,7 +344,7 @@ app.post('/api/admin/login', async (req, res) => {
         await pool.execute(`
             INSERT INTO admin_sessions (admin_id, session_token, ip_address, user_agent, expires_at)
             VALUES (?, ?, ?, ?, ?)
-        `, [admin.admin_id, adminToken, req.ip, req.headers['user-agent'], expiresAt]);
+        `, [admin.id, adminToken, req.ip, req.headers['user-agent'], expiresAt]);  // ← admin.id
         
         res.json({
             success: true,
