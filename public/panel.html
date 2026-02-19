@@ -191,16 +191,19 @@
             background: #ffffff;
             padding: 24px 40px;
             box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        .header h1 {
+        .header-left h1 {
             font-size: 28px;
             font-weight: 700;
             color: #1a202c;
             margin-bottom: 4px;
         }
         
-        .header p {
+        .header-left p {
             font-size: 14px;
             color: #718096;
         }
@@ -208,6 +211,14 @@
         /* Content */
         .content {
             padding: 32px 40px;
+            max-width: 1400px;
+        }
+        
+        /* Grid Layout */
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
         }
         
         /* Card */
@@ -216,7 +227,7 @@
             border-radius: 16px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             border: 1px solid #e8ecf4;
-            margin-bottom: 24px;
+            overflow: hidden;
         }
         
         .card-header {
@@ -244,8 +255,379 @@
             color: #667eea;
         }
         
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .status-badge.connected {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .status-badge.disconnected {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        
+        .status-badge i {
+            font-size: 10px;
+        }
+        
         .card-body {
             padding: 28px;
+        }
+        
+        /* WhatsApp QR */
+        .qr-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+        
+        .qr-code {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 16px;
+            border: 2px solid #e8ecf4;
+            margin-bottom: 24px;
+        }
+        
+        .qr-code img {
+            display: block;
+            max-width: 280px;
+            width: 100%;
+        }
+        
+        .qr-instructions {
+            text-align: center;
+            max-width: 500px;
+        }
+        
+        .qr-instructions h4 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 12px;
+        }
+        
+        .qr-instructions ol {
+            text-align: left;
+            margin: 20px 0;
+            padding-left: 24px;
+        }
+        
+        .qr-instructions li {
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #e8ecf4;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .connected-info {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .connected-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: #ffffff;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 24px rgba(72, 187, 120, 0.3);
+        }
+        
+        .connected-info h4 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        
+        .connected-info p {
+            font-size: 15px;
+            color: #718096;
+            margin-bottom: 24px;
+        }
+        
+        .phone-number {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: #f7fafc;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        /* Message Form */
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #2d3748;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-group label i {
+            color: #667eea;
+            font-size: 13px;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            background: #f7fafc;
+            color: #2d3748;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        /* Phone Input with Country Selector */
+        .phone-input-wrapper {
+            position: relative;
+        }
+        
+        .iti {
+            width: 100%;
+        }
+        
+        .iti__flag-container {
+            padding-left: 18px;
+        }
+        
+        .iti__selected-flag {
+            padding: 0;
+        }
+        
+        .iti--separate-dial-code .iti__selected-flag {
+            background-color: transparent;
+        }
+        
+        .iti--separate-dial-code .iti__selected-flag:hover {
+            background-color: transparent;
+        }
+        
+        #phone {
+            padding-left: 100px !important;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            width: 100%;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-danger {
+            background: #fed7d7;
+            color: #c53030;
+            border: 1px solid #fc8181;
+        }
+        
+        .btn-danger:hover {
+            background: #fc8181;
+            color: white;
+        }
+        
+        .btn i {
+            font-size: 16px;
+        }
+        
+        /* Alert */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            animation: slideDown 0.3s ease;
+            margin-bottom: 24px;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .alert.show {
+            display: flex;
+        }
+        
+        .alert.error {
+            background: #fed7d7;
+            border: 1px solid #fc8181;
+            color: #742a2a;
+        }
+        
+        .alert.success {
+            background: #c6f6d5;
+            border: 1px solid #48bb78;
+            color: #22543d;
+        }
+        
+        .alert i {
+            font-size: 18px;
+        }
+        
+        /* API Info */
+        .api-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 24px;
+            border-radius: 12px;
+            color: white;
+        }
+        
+        .api-info h4 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .api-key-box {
+            background: rgba(255,255,255,0.15);
+            padding: 12px 16px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .api-key-text {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .copy-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        /* Mobile Menu */
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            font-size: 20px;
         }
         
         /* DataTables Custom Styles */
@@ -287,33 +669,6 @@
             vertical-align: middle;
         }
         
-        /* Status Badges */
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            text-transform: uppercase;
-        }
-        
-        .status-badge.sent {
-            background: #c6f6d5;
-            color: #22543d;
-        }
-        
-        .status-badge.failed {
-            background: #fed7d7;
-            color: #742a2a;
-        }
-        
-        .status-badge i {
-            font-size: 8px;
-        }
-        
-        /* Type Badge */
         .type-badge {
             padding: 4px 10px;
             border-radius: 6px;
@@ -433,24 +788,63 @@
             line-height: 1.6;
         }
         
-        /* Mobile */
+        .sidebar.mobile-open {
+            transform: translateX(0) !important;
+        }
+        
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 99;
+        }
+        
+        .sidebar-overlay.show {
+            display: block;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
         @media (max-width: 1024px) {
-            .main-content {
-                margin-left: 0;
+            .mobile-menu-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
             
             .sidebar {
                 transform: translateX(-100%);
-                transition: transform 0.3s;
+                transition: transform 0.3s ease;
+            }
+            
+            .main-content {
+                margin-left: 0;
             }
             
             .header {
-                padding-left: 20px;
+                padding-left: 80px;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+    
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+    
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
@@ -466,7 +860,7 @@
         </div>
         
         <nav class="sidebar-nav">
-            <a href="#" class="nav-item" onclick="showSection('dashboard')" id="nav-dashboard">
+            <a href="#" class="nav-item active" onclick="showSection('dashboard')" id="nav-dashboard">
                 <i class="fa-solid fa-grid-2"></i>
                 <span>Dashboard</span>
             </a>
@@ -474,7 +868,7 @@
                 <i class="fa-solid fa-paper-plane"></i>
                 <span>Enviar Mensaje</span>
             </a>
-            <a href="#" class="nav-item active" onclick="showSection('history')" id="nav-history">
+            <a href="#" class="nav-item" onclick="showSection('history')" id="nav-history">
                 <i class="fa-solid fa-clock-rotate-left"></i>
                 <span>Historial</span>
             </a>
@@ -502,21 +896,188 @@
     <div class="main-content">
         <!-- Header -->
         <div class="header">
-            <h1 id="page-title">Historial de Mensajes</h1>
-            <p id="page-subtitle">Consulta todos los mensajes enviados</p>
+            <div class="header-left">
+                <h1 id="page-title">Dashboard</h1>
+                <p id="page-subtitle">Gestiona tu conexión de WhatsApp</p>
+            </div>
         </div>
         
         <!-- Content -->
         <div class="content">
+            <div id="alert" class="alert">
+                <i class="fa-solid fa-circle-info"></i>
+                <span id="alert-message"></span>
+            </div>
+            
+            <!-- Dashboard Section -->
+            <div id="section-dashboard">
+                <div class="grid-container">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fa-brands fa-whatsapp"></i>
+                                <h3>Conexión de WhatsApp</h3>
+                            </div>
+                            <span class="status-badge disconnected" id="status-badge">
+                                <i class="fa-solid fa-circle"></i>
+                                Desconectado
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <div id="qr-container" class="qr-container">
+                                <div class="loading-spinner"></div>
+                                <p style="margin-top: 20px; color: #718096;">Cargando estado...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fa-solid fa-key"></i>
+                                <h3>Tu API Key</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="api-info">
+                                <h4>
+                                    <i class="fa-solid fa-code"></i>
+                                    Credenciales de API
+                                </h4>
+                                <div class="api-key-box">
+                                    <div class="api-key-text" id="api-key">••••••••••••••••••••</div>
+                                    <button class="copy-btn" onclick="copyApiKey()">
+                                        <i class="fa-solid fa-copy"></i>
+                                        Copiar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Send Message Section -->
+            <div id="section-send" style="display: none;">
+                <div class="grid-container">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fa-solid fa-paper-plane"></i>
+                                <h3>Enviar Mensaje</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form id="message-form" onsubmit="sendMessage(event)">
+                                <div class="form-group">
+                                    <label>
+                                        <i class="fa-solid fa-phone"></i>
+                                        Número de Teléfono
+                                    </label>
+                                    <div class="phone-input-wrapper">
+                                        <input 
+                                            type="tel" 
+                                            id="phone" 
+                                            placeholder="Ingresa el número"
+                                            required
+                                        >
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>
+                                        <i class="fa-solid fa-message"></i>
+                                        Mensaje
+                                    </label>
+                                    <textarea 
+                                        id="message" 
+                                        placeholder="Escribe tu mensaje aquí..."
+                                        required
+                                    ></textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>
+                                        <i class="fa-solid fa-paperclip"></i>
+                                        URL de Archivo Adjunto (Opcional)
+                                    </label>
+                                    <input 
+                                        type="url" 
+                                        id="fileUrl" 
+                                        placeholder="https://ejemplo.com/archivo.pdf"
+                                    >
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary" id="send-btn">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                    <span id="send-btn-text">Enviar Mensaje</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fa-brands fa-whatsapp"></i>
+                                <h3>Estado de WhatsApp</h3>
+                            </div>
+                            <span class="status-badge disconnected" id="status-badge-2">
+                                <i class="fa-solid fa-circle"></i>
+                                Desconectado
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <div id="whatsapp-status">
+                                <div style="text-align: center; padding: 20px; color: #718096;">
+                                    <div class="loading-spinner" style="margin: 0 auto 20px;"></div>
+                                    <p>Verificando conexión...</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Instrucciones de uso -->
+                            <div style="background: #f7fafc; padding: 20px; border-radius: 12px; margin-top: 24px;">
+                                <h4 style="font-size: 16px; font-weight: 600; color: #2d3748; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-circle-info" style="color: #667eea;"></i>
+                                    Cómo enviar mensajes
+                                </h4>
+                                <ol style="margin: 0; padding-left: 20px; color: #4a5568; font-size: 14px; line-height: 1.8;">
+                                    <li><strong>Conecta WhatsApp:</strong> Escanea el código QR en la sección Dashboard</li>
+                                    <li><strong>Ingresa el número:</strong> Incluye el código de país (ej: +57)</li>
+                                    <li><strong>Escribe tu mensaje:</strong> El texto que quieres enviar</li>
+                                    <li><strong>Adjunta archivo (opcional):</strong> URL de PDF, imagen, etc.</li>
+                                    <li><strong>Envía:</strong> Haz clic en "Enviar Mensaje"</li>
+                                </ol>
+                            </div>
+                            
+                            <!-- API Key Info -->
+                            <div class="api-info" style="margin-top: 24px;">
+                                <h4>
+                                    <i class="fa-solid fa-key"></i>
+                                    Tu API Key
+                                </h4>
+                                <div class="api-key-box">
+                                    <div class="api-key-text" id="api-key-2">••••••••••••••••••••</div>
+                                    <button class="copy-btn" onclick="copyApiKey()">
+                                        <i class="fa-solid fa-copy"></i>
+                                        Copiar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- History Section -->
-            <div id="section-history">
+            <div id="section-history" style="display: none;">
                 <div class="card">
                     <div class="card-header">
                         <div class="card-title">
                             <i class="fa-solid fa-clock-rotate-left"></i>
                             <h3>Mensajes Enviados</h3>
                         </div>
-                        <button onclick="loadMessages()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600;">
+                        <button onclick="loadMessages()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
                             <i class="fa-solid fa-rotate"></i>
                             Actualizar
                         </button>
@@ -541,30 +1102,101 @@
                 </div>
             </div>
             
-            <!-- Other sections (Dashboard, Send, Docs) -->
-            <div id="section-dashboard" style="display: none;">
-                <p>Dashboard content...</p>
-            </div>
-            
-            <div id="section-send" style="display: none;">
-                <p>Send message content...</p>
-            </div>
-            
+            <!-- Documentation Section -->
             <div id="section-docs" style="display: none;">
-                <p>Documentation content...</p>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fa-solid fa-book"></i>
+                            <h3>Documentación de la API</h3>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div style="max-width: 800px;">
+                            <h4 style="font-size: 20px; font-weight: 700; color: #1a202c; margin-bottom: 16px;">
+                                <i class="fa-solid fa-code" style="color: #667eea;"></i>
+                                Cómo usar la API
+                            </h4>
+                            
+                            <div style="background: #f7fafc; padding: 20px; border-radius: 12px; margin-bottom: 24px; border-left: 4px solid #667eea;">
+                                <p style="font-size: 14px; font-weight: 600; color: #2d3748; margin-bottom: 8px;">
+                                    <i class="fa-solid fa-location-dot" style="color: #667eea;"></i>
+                                    Endpoint de la API:
+                                </p>
+                                <code style="background: #e2e8f0; padding: 8px 12px; border-radius: 8px; display: block; font-family: 'Courier New', monospace; font-size: 14px; color: #2d3748;">
+                                    https://api.intermediahost.co/api/send
+                                </code>
+                            </div>
+                            
+                            <div style="margin-bottom: 32px;">
+                                <h5 style="font-size: 16px; font-weight: 600; color: #2d3748; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-brands fa-php" style="color: #667eea;"></i>
+                                    Ejemplo en PHP
+                                </h5>
+                                
+                                <pre style="background: #1a202c; color: #e2e8f0; padding: 20px; border-radius: 12px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6;"><code>&lt;?php
+$apiKey = 'TU_API_KEY_AQUI';
+$url = 'https://api.intermediahost.co/api/send';
+
+$data = [
+    'phonenumber' => '573001234567',
+    'text' => 'Hola! Tu factura está lista',
+    'url' => 'https://tudominio.com/factura.pdf'
+];
+
+$ch = curl_init($url);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Authorization: Bearer ' . $apiKey
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+?&gt;</code></pre>
+                            </div>
+                            
+                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 24px; border-radius: 12px; color: white;">
+                                <h5 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-circle-info"></i>
+                                    Parámetros de la API
+                                </h5>
+                                
+                                <table style="width: 100%; font-size: 14px;">
+                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.2);">
+                                        <td style="padding: 12px 0; font-weight: 600;">phonenumber</td>
+                                        <td style="padding: 12px 0;">Número con código de país</td>
+                                        <td style="padding: 12px 0; text-align: right;"><span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 6px; font-size: 12px;">Requerido</span></td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.2);">
+                                        <td style="padding: 12px 0; font-weight: 600;">text</td>
+                                        <td style="padding: 12px 0;">Mensaje de texto</td>
+                                        <td style="padding: 12px 0; text-align: right;"><span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 6px; font-size: 12px;">Requerido</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 12px 0; font-weight: 600;">url</td>
+                                        <td style="padding: 12px 0;">URL del archivo adjunto</td>
+                                        <td style="padding: 12px 0; text-align: right;"><span style="background: rgba(255,255,255,0.15); padding: 4px 8px; border-radius: 6px; font-size: 12px;">Opcional</span></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
     
     <!-- Modal: Message Details -->
-    <div class="modal" id="message-modal" onclick="closeModal(event)">
+    <div class="modal" id="message-modal" onclick="closeMessageModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <h3>
                     <i class="fa-solid fa-message"></i>
                     Detalle del Mensaje
                 </h3>
-                <button class="modal-close" onclick="closeModal()">
+                <button class="modal-close" onclick="closeMessageModal()">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -663,13 +1295,30 @@
     <!-- DataTables -->
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     
+    <!-- Intl Tel Input JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.2.1/js/intlTelInput.min.js"></script>
+    
     <script>
         let sessionToken = localStorage.getItem('session_token');
+        let clientData = null;
+        let checkInterval = null;
+        let phoneInput = null;
         let messagesTable = null;
         
         // Verificar autenticación
         if (!sessionToken) {
             window.location.href = '/';
+        }
+        
+        // Inicializar selector de país
+        function initPhoneInput() {
+            const input = document.querySelector("#phone");
+            phoneInput = window.intlTelInput(input, {
+                initialCountry: "co",
+                preferredCountries: ["co", "us", "mx", "es"],
+                separateDialCode: true,
+                utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.2.1/js/utils.js"
+            });
         }
         
         // Cargar datos del usuario
@@ -687,20 +1336,26 @@
                 }
                 
                 const data = await response.json();
-                const client = data.client;
+                clientData = data.client;
                 
-                document.getElementById('user-name').textContent = client.name;
-                document.getElementById('user-avatar').textContent = client.name.charAt(0).toUpperCase();
+                document.getElementById('user-name').textContent = clientData.name;
+                document.getElementById('user-avatar').textContent = clientData.name.charAt(0).toUpperCase();
+                document.getElementById('api-key').textContent = clientData.api_key;
+                document.getElementById('api-key-2').textContent = clientData.api_key;
+                
+                // Iniciar verificación de estado
+                checkStatus();
+                checkInterval = setInterval(checkStatus, 3000); // Cada 3 segundos como en panel.html
                 
             } catch (error) {
-                console.error('Error:', error);
+                showAlert('Error cargando datos del usuario', 'error');
             }
         }
         
-        // Cargar mensajes
-        async function loadMessages() {
+        // Verificar estado de WhatsApp
+        async function checkStatus() {
             try {
-                const response = await fetch('/api/my-messages?limit=1000', {
+                const response = await fetch('/api/my-status', {
                     headers: {
                         'X-Session-Token': sessionToken
                     }
@@ -709,147 +1364,233 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Destruir tabla existente
-                    if (messagesTable) {
-                        messagesTable.destroy();
+                    updateUI(data.connected, data.qr, data.phone_number);
+                }
+            } catch (error) {
+                console.error('Error checking status:', error);
+            }
+        }
+        
+        // Actualizar UI (como en panel.html que funciona)
+        function updateUI(connected, qr, phoneNumber) {
+            const qrContainer = document.getElementById('qr-container');
+            const statusBadge = document.getElementById('status-badge');
+            const statusBadge2 = document.getElementById('status-badge-2');
+            const sendStatus = document.getElementById('whatsapp-status');
+            
+            if (connected) {
+                // Actualizar badges
+                if (statusBadge) {
+                    statusBadge.className = 'status-badge connected';
+                    statusBadge.innerHTML = '<i class="fa-solid fa-circle"></i> Conectado';
+                }
+                if (statusBadge2) {
+                    statusBadge2.className = 'status-badge connected';
+                    statusBadge2.innerHTML = '<i class="fa-solid fa-circle"></i> Conectado';
+                }
+                
+                // Dashboard: Conectado con botón
+                if (qrContainer) {
+                    qrContainer.innerHTML = `
+                        <div class="connected-info">
+                            <div class="connected-icon">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+                            <h4>WhatsApp Conectado</h4>
+                            <p>Listo para enviar mensajes</p>
+                            <div class="phone-number" style="margin-bottom: 20px;">
+                                <i class="fa-solid fa-phone"></i>
+                                ${phoneNumber ? '+' + phoneNumber : 'Número no disponible'}
+                            </div>
+                            <button class="btn btn-danger" onclick="disconnectWhatsApp()" style="width: auto; margin-top: 16px;">
+                                <i class="fa-solid fa-plug-circle-xmark"></i>
+                                Desconectar / Cambiar Número
+                            </button>
+                        </div>
+                    `;
+                }
+                
+                // Send section: Estado compacto
+                if (sendStatus) {
+                    sendStatus.innerHTML = `
+                        <div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%); border-radius: 12px;">
+                            <div style="width: 56px; height: 56px; background: #48bb78; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                                <i class="fa-solid fa-check" style="font-size: 28px; color: white;"></i>
+                            </div>
+                            <h4 style="font-size: 18px; font-weight: 700; color: #22543d; margin-bottom: 8px;">Conectado y Listo</h4>
+                            <p style="font-size: 14px; color: #276749; margin: 0;">
+                                <i class="fa-solid fa-phone"></i>
+                                ${phoneNumber ? '+' + phoneNumber : 'Número no disponible'}
+                            </p>
+                        </div>
+                    `;
+                }
+            } else if (qr) {
+                // Actualizar badges
+                if (statusBadge) {
+                    statusBadge.className = 'status-badge disconnected';
+                    statusBadge.innerHTML = '<i class="fa-solid fa-circle"></i> Esperando Conexión';
+                }
+                if (statusBadge2) {
+                    statusBadge2.className = 'status-badge disconnected';
+                    statusBadge2.innerHTML = '<i class="fa-solid fa-circle"></i> Esperando Conexión';
+                }
+                
+                // Dashboard: QR
+                if (qrContainer) {
+                    qrContainer.innerHTML = `
+                        <div class="qr-code">
+                            <img src="${qr}" alt="QR Code">
+                        </div>
+                        <div class="qr-instructions">
+                            <h4>Escanea el código QR</h4>
+                            <ol>
+                                <li>Abre WhatsApp en tu teléfono</li>
+                                <li>Ve a Configuración > Dispositivos vinculados</li>
+                                <li>Toca "Vincular un dispositivo"</li>
+                                <li>Escanea este código QR</li>
+                            </ol>
+                        </div>
+                    `;
+                }
+                
+                // Send section: Aviso
+                if (sendStatus) {
+                    sendStatus.innerHTML = `
+                        <div style="text-align: center; padding: 30px; background: #fff3cd; border-radius: 12px; border: 2px dashed #ffc107;">
+                            <i class="fa-solid fa-qrcode" style="font-size: 48px; color: #856404; margin-bottom: 16px;"></i>
+                            <h4 style="font-size: 16px; font-weight: 600; color: #856404; margin-bottom: 8px;">WhatsApp no conectado</h4>
+                            <p style="font-size: 14px; color: #856404; margin: 0;">Ve a <strong>Dashboard</strong> para escanear el código QR</p>
+                        </div>
+                    `;
+                }
+            } else {
+                // Cargando
+                if (statusBadge) {
+                    statusBadge.className = 'status-badge disconnected';
+                    statusBadge.innerHTML = '<i class="fa-solid fa-circle"></i> Desconectado';
+                }
+                if (statusBadge2) {
+                    statusBadge2.className = 'status-badge disconnected';
+                    statusBadge2.innerHTML = '<i class="fa-solid fa-circle"></i> Desconectado';
+                }
+                
+                if (qrContainer) {
+                    qrContainer.innerHTML = `
+                        <div class="qr-container">
+                            <div class="loading-spinner"></div>
+                            <p style="margin-top: 20px; color: #718096;">Generando código QR...</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+        
+        // Desconectar WhatsApp
+        async function disconnectWhatsApp() {
+            if (!confirm('¿Estás seguro de desconectar WhatsApp?\n\nTendrás que escanear el código QR nuevamente para conectar.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/my-disconnect', {
+                    method: 'POST',
+                    headers: {
+                        'X-Session-Token': sessionToken
                     }
-                    
-                    // Limpiar tbody
-                    $('#messagesTable tbody').empty();
-                    
-                    // Agregar filas
-                    data.messages.forEach(msg => {
-                        const row = `
-                            <tr onclick="showMessageDetail(${msg.id})">
-                                <td>${formatDate(msg.created_at)}</td>
-                                <td>${msg.phone_number}</td>
-                                <td><span class="type-badge ${msg.message_type}">${msg.message_type}</span></td>
-                                <td>${truncate(msg.message_text, 50)}</td>
-                                <td><span class="status-badge ${msg.status}"><i class="fa-solid fa-circle"></i> ${msg.status}</span></td>
-                                <td>${msg.response_time ? msg.response_time + 'ms' : '-'}</td>
-                            </tr>
-                        `;
-                        $('#messagesTable tbody').append(row);
-                    });
-                    
-                    // Inicializar DataTable
-                    messagesTable = $('#messagesTable').DataTable({
-                        order: [[0, 'desc']],
-                        pageLength: 25,
-                        language: {
-                            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
-                        }
-                    });
-                    
-                    // Guardar mensajes en variable global
-                    window.messagesData = data.messages;
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('WhatsApp desconectado correctamente. Escanea el QR para volver a conectar.', 'success');
+                    setTimeout(checkStatus, 1000);
+                } else {
+                    showAlert(data.error || 'Error al desconectar', 'error');
+                }
+            } catch (error) {
+                showAlert('Error de conexión con el servidor', 'error');
+            }
+        }
+        
+        // Enviar mensaje
+        async function sendMessage(event) {
+            event.preventDefault();
+            
+            const phoneNumber = phoneInput.getNumber();
+            const message = document.getElementById('message').value;
+            const fileUrl = document.getElementById('fileUrl').value;
+            const btn = document.getElementById('send-btn');
+            const btnText = document.getElementById('send-btn-text');
+            
+            btn.disabled = true;
+            btnText.textContent = 'Enviando...';
+            
+            try {
+                const response = await fetch('/api/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${clientData.api_key}`
+                    },
+                    body: JSON.stringify({
+                        phonenumber: phoneNumber,
+                        text: message,
+                        url: fileUrl || undefined
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Mensaje enviado correctamente', 'success');
+                    document.getElementById('message-form').reset();
+                    phoneInput.setNumber('');
+                } else {
+                    showAlert(data.error || 'Error al enviar mensaje', 'error');
                 }
                 
             } catch (error) {
-                console.error('Error cargando mensajes:', error);
-                alert('Error cargando mensajes');
+                showAlert('Error de conexión con el servidor', 'error');
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'Enviar Mensaje';
             }
-        }
-        
-        // Mostrar detalle del mensaje
-        function showMessageDetail(messageId) {
-            const message = window.messagesData.find(m => m.id === messageId);
-            if (!message) return;
-            
-            document.getElementById('modal-date').textContent = formatDateFull(message.created_at);
-            document.getElementById('modal-phone').textContent = message.phone_number;
-            document.getElementById('modal-type').innerHTML = `<span class="type-badge ${message.message_type}">${message.message_type}</span>`;
-            document.getElementById('modal-message').textContent = message.message_text || 'Sin mensaje de texto';
-            
-            // Archivo
-            if (message.file_url) {
-                document.getElementById('file-row').style.display = 'block';
-                document.getElementById('modal-file').href = message.file_url;
-            } else {
-                document.getElementById('file-row').style.display = 'none';
-            }
-            
-            // Caption
-            if (message.caption) {
-                document.getElementById('caption-row').style.display = 'block';
-                document.getElementById('modal-caption').textContent = message.caption;
-            } else {
-                document.getElementById('caption-row').style.display = 'none';
-            }
-            
-            // Estado
-            document.getElementById('modal-status').innerHTML = `<span class="status-badge ${message.status}">${message.status}</span>`;
-            
-            // Error
-            if (message.error_message) {
-                document.getElementById('error-row').style.display = 'block';
-                document.getElementById('modal-error').textContent = message.error_message;
-            } else {
-                document.getElementById('error-row').style.display = 'none';
-            }
-            
-            document.getElementById('modal-time').textContent = message.response_time ? message.response_time + ' ms' : 'No disponible';
-            document.getElementById('modal-id').textContent = message.message_id || 'No disponible';
-            
-            document.getElementById('message-modal').classList.add('show');
-        }
-        
-        // Cerrar modal
-        function closeModal(event) {
-            if (event && event.target !== event.currentTarget) return;
-            document.getElementById('message-modal').classList.remove('show');
-        }
-        
-        // Formatear fecha
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleString('es-CO', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-        
-        function formatDateFull(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleString('es-CO', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-        }
-        
-        // Truncar texto
-        function truncate(str, length) {
-            if (!str) return '-';
-            return str.length > length ? str.substring(0, length) + '...' : str;
         }
         
         // Cambiar sección
         function showSection(section) {
-            document.querySelectorAll('[id^="section-"]').forEach(el => el.style.display = 'none');
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('section-dashboard').style.display = 'none';
+            document.getElementById('section-send').style.display = 'none';
+            document.getElementById('section-docs').style.display = 'none';
             
-            document.getElementById('section-' + section).style.display = 'block';
-            document.getElementById('nav-' + section).classList.add('active');
+            document.getElementById('nav-dashboard').classList.remove('active');
+            document.getElementById('nav-send').classList.remove('active');
+            document.getElementById('nav-docs').classList.remove('active');
             
-            const titles = {
-                dashboard: ['Dashboard', 'Gestiona tu conexión de WhatsApp'],
-                send: ['Enviar Mensaje', 'Envía mensajes desde tu aplicación'],
-                history: ['Historial de Mensajes', 'Consulta todos los mensajes enviados'],
-                docs: ['Documentación', 'Aprende a integrar la API']
-            };
-            
-            if (titles[section]) {
-                document.getElementById('page-title').textContent = titles[section][0];
-                document.getElementById('page-subtitle').textContent = titles[section][1];
+            if (section === 'dashboard') {
+                document.getElementById('section-dashboard').style.display = 'block';
+                document.getElementById('nav-dashboard').classList.add('active');
+                document.getElementById('page-title').textContent = 'Dashboard';
+                document.getElementById('page-subtitle').textContent = 'Gestiona tu conexión de WhatsApp';
+            } else if (section === 'send') {
+                document.getElementById('section-send').style.display = 'block';
+                document.getElementById('nav-send').classList.add('active');
+                document.getElementById('page-title').textContent = 'Enviar Mensaje';
+                document.getElementById('page-subtitle').textContent = 'Envía mensajes de WhatsApp desde tu aplicación';
+            } else if (section === 'docs') {
+                document.getElementById('section-docs').style.display = 'block';
+                document.getElementById('nav-docs').classList.add('active');
+                document.getElementById('page-title').textContent = 'Documentación';
+                document.getElementById('page-subtitle').textContent = 'Aprende a integrar la API';
             }
+        }
+        
+        // Copiar API Key
+        function copyApiKey() {
+            const apiKey = document.getElementById('api-key').textContent;
+            navigator.clipboard.writeText(apiKey);
+            showAlert('API Key copiada al portapapeles', 'success');
         }
         
         // Cerrar sesión
@@ -862,16 +1603,39 @@
                     }
                 });
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error al cerrar sesión:', error);
             }
             
             localStorage.clear();
+            if (checkInterval) clearInterval(checkInterval);
             window.location.href = '/';
         }
         
+        // Mostrar alerta
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            const alertMessage = document.getElementById('alert-message');
+            
+            alertMessage.textContent = message;
+            alert.className = `alert ${type} show`;
+            
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 5000);
+        }
+        
+        // Toggle mobile menu
+        function toggleMobileMenu() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('show');
+        }
+        
         // Inicializar
+        initPhoneInput();
         loadUserData();
-        loadMessages();
     </script>
 </body>
 </html>
