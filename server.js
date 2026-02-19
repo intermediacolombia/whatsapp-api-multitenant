@@ -1,3 +1,20 @@
+//BLOQUEO TOTAL de logs Closing session
+const originalStdoutWrite = process.stdout.write.bind(process.stdout);
+const originalStderrWrite = process.stderr.write.bind(process.stderr);
+
+process.stdout.write = (chunk, encoding, callback) => {
+    if (chunk && chunk.toString().includes('Closing session')) return true;
+    if (chunk && chunk.toString().includes('SessionEntry')) return true;
+    return originalStdoutWrite(chunk, encoding, callback);
+};
+
+process.stderr.write = (chunk, encoding, callback) => {
+    if (chunk && chunk.toString().includes('Closing session')) return true;
+    if (chunk && chunk.toString().includes('SessionEntry')) return true;
+    return originalStderrWrite(chunk, encoding, callback);
+};
+
+
 require('dotenv').config();
 
 process.env.WA_NO_VERBOSE = 'true';
