@@ -1,5 +1,5 @@
 /**
- * WhatsApp Connection OPTIMIZADO
+ /* WhatsApp Connection OPTIMIZADO
  * Rápido y eficiente para servidor
  */
 
