@@ -110,49 +110,63 @@ class WhatsAppConnection {
     });
 }
 
-    async sendMessage(phone, message) {
-        if (!this.isConnected) throw new Error('WhatsApp no conectado');
-        
-        const jid = `${phone.replace(/[^0-9]/g, '')}@s.whatsapp.net`;
-        const result = await this.sock.sendMessage(jid, { text: message });
-        return { success: true, messageId: result.key.id };
-    }
-
     async sendFile(phoneNumber, fileUrl, fileName, caption = '') {
     if (!this.isConnected) {
         throw new Error('WhatsApp no está conectado');
     }
 
-    // Limpiar número
     const cleanNumber = phoneNumber.replace(/\D/g, '');
     const jid = cleanNumber.includes('@') ? cleanNumber : `${cleanNumber}@s.whatsapp.net`;
 
-    // ✅ Validar que el número existe en WhatsApp
     const [result] = await this.sock.onWhatsApp(jid);
     if (!result || !result.exists) {
         throw new Error(`El número ${phoneNumber} no está registrado en WhatsApp`);
     }
 
     try {
-        // Descargar el archivo
         const axios = require('axios');
         const response = await axios.get(fileUrl, { responseType: 'arraybuffer' });
         const buffer = Buffer.from(response.data);
 
-        // Detectar tipo MIME
         let mimetype = response.headers['content-type'] || 'application/octet-stream';
         
-        // ✅ CORRECCIÓN: El caption debe ir dentro del objeto de mensaje
-        const message = await this.sock.sendMessage(jid, {
-            document: buffer,
-            mimetype: mimetype,
-            fileName: fileName,
-            caption: caption || '' // ✅ Aquí va el texto que acompaña al archivo
-        });
+        // ✅ DETECTAR TIPO DE ARCHIVO
+        let messageContent;
+        
+        if (mimetype.startsWith('image/')) {
+            // Enviar como IMAGEN
+            messageContent = {
+                image: buffer,
+                caption: caption || ''
+            };
+        } else if (mimetype.startsWith('video/')) {
+            // Enviar como VIDEO
+            messageContent = {
+                video: buffer,
+                caption: caption || ''
+            };
+        } else if (mimetype.startsWith('audio/')) {
+            // Enviar como AUDIO
+            messageContent = {
+                audio: buffer,
+                mimetype: mimetype
+            };
+        } else {
+            // Enviar como DOCUMENTO (PDF, Excel, Word, etc.)
+            messageContent = {
+                document: buffer,
+                mimetype: mimetype,
+                fileName: fileName,
+                caption: caption || ''
+            };
+        }
+
+        const message = await this.sock.sendMessage(jid, messageContent);
 
         return {
             success: true,
             messageId: message.key.id,
+            timestamp: message.messageTimestamp,
             phone: phoneNumber
         };
 
