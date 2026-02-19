@@ -842,6 +842,8 @@ app.get('/api/my-messages', authenticateSession, async (req, res) => {
     }
 });
 
+
+
 /**
  * GET /api/admin/messages - Ver todos los mensajes (admin)
  */
@@ -869,6 +871,7 @@ app.get('/api/admin/messages', authenticateAdmin, async (req, res) => {
         });
     }
 });
+
 
 // ========== ERROR 404 ==========
 
