@@ -34,19 +34,21 @@ class WhatsAppConnection {
     const { state, saveCreds } = await useMultiFileAuthState(this.authFolder);
     const { version } = await fetchLatestBaileysVersion();
 
-    this.sock = makeWASocket({
-        version,
-        printQRInTerminal: false,
-        auth: {
-            creds: state.creds,
-            keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' })),
-        },
-        //logger: pino({ level: 'fatal' }),
-        browser: ['API WhatsApp', 'Chrome', '1.0.0'],
-        shouldIgnoreJid: () => false,
-    msgRetryCounterMap: {},
-    generateHighQualityLinkPreview: false
-    });
+    const pino = require('pino')
+
+const silentLogger = pino({ level: 'silent' })
+
+this.sock = makeWASocket({
+    version,
+    printQRInTerminal: false,
+    auth: {
+        creds: state.creds,
+        keys: makeCacheableSignalKeyStore(state.keys, silentLogger),
+    },
+    logger: silentLogger,
+    browser: ['API WhatsApp', 'Chrome', '1.0.0'],
+})
+
 
     this.sock.ev.on('creds.update', saveCreds);
 
