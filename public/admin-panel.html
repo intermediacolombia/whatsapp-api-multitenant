@@ -4,695 +4,130 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - WhatsApp API</title>
-    
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- DataTables CSS -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-    
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #f8f9fd;
-            color: #2d3748;
-        }
-        
-        /* Sidebar */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 280px;
-            background: #ffffff;
-            box-shadow: 2px 0 12px rgba(0,0,0,0.05);
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .sidebar-header {
-            padding: 32px 28px;
-            border-bottom: 1px solid #e8ecf4;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        
-        .logo-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(26, 32, 44, 0.25);
-        }
-        
-        .logo-icon i {
-            font-size: 24px;
-            color: #ffffff;
-        }
-        
-        .logo-text h2 {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1a202c;
-            line-height: 1.2;
-        }
-        
-        .logo-text p {
-            font-size: 12px;
-            color: #718096;
-            margin-top: 2px;
-        }
-        
-        .sidebar-nav {
-            flex: 1;
-            padding: 24px 16px;
-            overflow-y: auto;
-        }
-        
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 12px 16px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 4px;
-            color: #4a5568;
-            text-decoration: none;
-        }
-        
-        .nav-item:hover {
-            background: #f7fafc;
-            color: #1a202c;
-        }
-        
-        .nav-item.active {
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(26, 32, 44, 0.3);
-        }
-        
-        .nav-item i {
-            font-size: 18px;
-            width: 20px;
-            text-align: center;
-        }
-        
-        .nav-item span {
-            font-size: 14px;
-            font-weight: 500;
-        }
-        
-        .sidebar-footer {
-            padding: 20px 28px;
-            border-top: 1px solid #e8ecf4;
-        }
-        
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        
-        .user-avatar {
-            width: 44px;
-            height: 44px;
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            font-size: 18px;
-            font-weight: 600;
-        }
-        
-        .user-info {
-            flex: 1;
-        }
-        
-        .user-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: #2d3748;
-        }
-        
-        .user-role {
-            font-size: 12px;
-            color: #a0aec0;
-        }
-        
-        .logout-btn {
-            background: none;
-            border: none;
-            color: #cbd5e0;
-            cursor: pointer;
-            font-size: 18px;
-            padding: 8px;
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-        
-        .logout-btn:hover {
-            background: #f7fafc;
-            color: #fc8181;
-        }
-        
-        /* Main Content */
-        .main-content {
-            margin-left: 280px;
-            min-height: 100vh;
-        }
-        
-        /* Header */
-        .header {
-            background: #ffffff;
-            padding: 24px 40px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .header-left h1 {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1a202c;
-            margin-bottom: 4px;
-        }
-        
-        .header-left p {
-            font-size: 14px;
-            color: #718096;
-        }
-        
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        
-        .header-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .header-btn.primary {
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(26, 32, 44, 0.3);
-        }
-        
-        .header-btn.primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(26, 32, 44, 0.4);
-        }
-        
-        /* Content */
-        .content {
-            padding: 32px 40px;
-        }
-        
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 24px;
-            margin-bottom: 32px;
-        }
-        
-        .stat-card {
-            background: #ffffff;
-            padding: 28px;
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border: 1px solid #e8ecf4;
-            transition: all 0.2s;
-        }
-        
-        .stat-card:hover {
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-            transform: translateY(-2px);
-        }
-        
-        .stat-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
-        }
-        
-        .stat-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-        }
-        
-        .stat-icon.primary {
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(26, 32, 44, 0.3);
-        }
-        
-        .stat-icon.success {
-            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
-        }
-        
-        .stat-icon.danger {
-            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
-        }
-        
-        .stat-icon.info {
-            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
-        }
-        
-        .stat-body h3 {
-            font-size: 32px;
-            font-weight: 700;
-            color: #1a202c;
-            margin-bottom: 6px;
-        }
-        
-        .stat-body p {
-            font-size: 14px;
-            color: #718096;
-            font-weight: 500;
-        }
-        
-        /* Table */
-        .table-card {
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border: 1px solid #e8ecf4;
-            overflow: hidden;
-        }
-        
-        .table-header {
-            padding: 24px 28px;
-            border-bottom: 1px solid #e8ecf4;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .table-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .table-title h3 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1a202c;
-        }
-        
-        .table-title i {
-            font-size: 20px;
-            color: #1a202c;
-        }
-        
-        .table-container {
-            overflow-x: auto;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        thead {
-            background: #f7fafc;
-        }
-        
-        th {
-            padding: 16px 20px;
-            text-align: left;
-            font-weight: 600;
-            color: #4a5568;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid #e8ecf4;
-        }
-        
-        td {
-            padding: 16px 20px;
-            border-bottom: 1px solid #f0f0f0;
-            color: #4a5568;
-            font-size: 14px;
-        }
-        
-        tbody tr:hover {
-            background: #f7fafc;
-        }
-        
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .status-badge.connected {
-            background: #c6f6d5;
-            color: #22543d;
-        }
-        
-        .status-badge.disconnected {
-            background: #fed7d7;
-            color: #742a2a;
-        }
-        
-        .status-badge.active {
-            background: #bee3f8;
-            color: #2c5282;
-        }
-        
-        .status-badge i {
-            font-size: 8px;
-        }
-        
-        .actions {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .btn-action {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .btn-action.view {
-            background: #e6f7ff;
-            color: #0c5282;
-            border: 1px solid #90cdf4;
-        }
-        
-        .btn-action.view:hover {
-            background: #90cdf4;
-        }
-        
-        .btn-action.edit {
-            background: #fef5e7;
-            color: #d69e2e;
-            border: 1px solid #f6e05e;
-        }
-        
-        .btn-action.edit:hover {
-            background: #fbd38d;
-        }
-        
-        .btn-action.delete {
-            background: #fed7d7;
-            color: #c53030;
-            border: 1px solid #fc8181;
-        }
-        
-        .btn-action.delete:hover {
-            background: #fc8181;
-            color: white;
-        }
-        
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(4px);
-        }
-        
-        .modal.show {
-            display: flex;
-        }
-        
-        .modal-content {
-            background: white;
-            padding: 32px;
-            border-radius: 20px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 24px 48px rgba(0,0,0,0.2);
-        }
-        
-        .modal-header {
-            margin-bottom: 24px;
-        }
-        
-        .modal-header h3 {
-            font-size: 22px;
-            font-weight: 700;
-            color: #1a202c;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #2d3748;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        
-        .form-group label i {
-            margin-right: 6px;
-            color: #1a202c;
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 14px;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s;
-            background: #f7fafc;
-        }
-        
-        .form-group input:focus {
-            outline: none;
-            border-color: #1a202c;
-            background: white;
-            box-shadow: 0 0 0 4px rgba(26, 32, 44, 0.1);
-        }
-        
-        .form-group small {
-            display: block;
-            margin-top: 6px;
-            color: #a0aec0;
-            font-size: 12px;
-        }
-        
-        .modal-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            margin-top: 28px;
-        }
-        
-        .btn-modal {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .btn-modal.cancel {
-            background: #e2e8f0;
-            color: #4a5568;
-        }
-        
-        .btn-modal.cancel:hover {
-            background: #cbd5e0;
-        }
-        
-        .btn-modal.save {
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(26, 32, 44, 0.3);
-        }
-        
-        .btn-modal.save:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(26, 32, 44, 0.4);
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #a0aec0;
-        }
-        
-        .empty-state i {
-            font-size: 64px;
-            margin-bottom: 20px;
-            opacity: 0.5;
-        }
-        
-        /* Mobile Menu */
-        .mobile-menu-btn {
-            display: none;
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 1000;
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-            color: white;
-            border: none;
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(26, 32, 44, 0.4);
-            font-size: 20px;
-        }
-        
-        .sidebar.mobile-open {
-            transform: translateX(0) !important;
-        }
-        
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 99;
-        }
-        
-        .sidebar-overlay.show {
-            display: block;
-        }
-        
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .mobile-menu-btn {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .sidebar {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-            }
-            
-            .main-content {
-                margin-left: 0;
-            }
-            
-            .header {
-                padding-left: 80px;
-            }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f8f9fd; color: #2d3748; }
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 280px; background: #fff; box-shadow: 2px 0 12px rgba(0,0,0,0.05); z-index: 100; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 32px 28px; border-bottom: 1px solid #e8ecf4; }
+        .logo { display: flex; align-items: center; gap: 14px; }
+        .logo-icon { width: 48px; height: 48px; background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(26,32,44,0.25); }
+        .logo-icon i { font-size: 24px; color: #fff; }
+        .logo-text h2 { font-size: 20px; font-weight: 700; color: #1a202c; }
+        .logo-text p { font-size: 12px; color: #718096; margin-top: 2px; }
+        .sidebar-nav { flex: 1; padding: 24px 16px; overflow-y: auto; }
+        .nav-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px; cursor: pointer; transition: all 0.2s; margin-bottom: 4px; color: #4a5568; text-decoration: none; }
+        .nav-item:hover { background: #f7fafc; color: #1a202c; }
+        .nav-item.active { background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); color: #fff; box-shadow: 0 4px 12px rgba(26,32,44,0.3); }
+        .nav-item i { font-size: 18px; width: 20px; text-align: center; }
+        .nav-item span { font-size: 14px; font-weight: 500; }
+        .sidebar-footer { padding: 20px 28px; border-top: 1px solid #e8ecf4; }
+        .user-profile { display: flex; align-items: center; gap: 14px; }
+        .user-avatar { width: 44px; height: 44px; background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; font-weight: 600; }
+        .user-info { flex: 1; }
+        .user-name { font-size: 14px; font-weight: 600; color: #2d3748; }
+        .user-role { font-size: 12px; color: #a0aec0; }
+        .logout-btn { background: none; border: none; color: #cbd5e0; cursor: pointer; font-size: 18px; padding: 8px; border-radius: 8px; transition: all 0.2s; }
+        .logout-btn:hover { background: #f7fafc; color: #fc8181; }
+        .main-content { margin-left: 280px; min-height: 100vh; }
+        .header { background: #fff; padding: 24px 40px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .header-left h1 { font-size: 28px; font-weight: 700; color: #1a202c; margin-bottom: 4px; }
+        .header-left p { font-size: 14px; color: #718096; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .header-btn { padding: 10px 20px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+        .header-btn.primary { background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); color: #fff; box-shadow: 0 4px 12px rgba(26,32,44,0.3); }
+        .header-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(26,32,44,0.4); }
+        .content { padding: 32px 40px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 32px; }
+        .stat-card { background: #fff; padding: 28px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #e8ecf4; transition: all 0.2s; }
+        .stat-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        .stat-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+        .stat-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .stat-icon.primary { background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); color: #fff; box-shadow: 0 4px 12px rgba(26,32,44,0.3); }
+        .stat-icon.success { background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: #fff; box-shadow: 0 4px 12px rgba(72,187,120,0.3); }
+        .stat-icon.danger { background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%); color: #fff; box-shadow: 0 4px 12px rgba(245,101,101,0.3); }
+        .stat-body h3 { font-size: 32px; font-weight: 700; color: #1a202c; margin-bottom: 6px; }
+        .stat-body p { font-size: 14px; color: #718096; font-weight: 500; }
+        .table-card { background: #fff; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #e8ecf4; overflow: hidden; }
+        .table-header { padding: 24px 28px; border-bottom: 1px solid #e8ecf4; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+        .table-title { display: flex; align-items: center; gap: 12px; }
+        .table-title h3 { font-size: 18px; font-weight: 700; color: #1a202c; }
+        .table-title i { font-size: 20px; color: #1a202c; }
+        .filter-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .filter-select { padding: 10px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; font-family: 'Inter', sans-serif; background: #fff; color: #2d3748; cursor: pointer; transition: all 0.2s; }
+        .filter-select:focus { outline: none; border-color: #1a202c; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #f7fafc; }
+        th { padding: 16px 20px; text-align: left; font-weight: 600; color: #4a5568; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e8ecf4; }
+        td { padding: 16px 20px; border-bottom: 1px solid #f0f0f0; color: #4a5568; font-size: 14px; }
+        tbody tr:hover { background: #f7fafc; }
+        .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; }
+        .status-badge.connected, .status-badge.sent { background: #c6f6d5; color: #22543d; }
+        .status-badge.disconnected, .status-badge.failed { background: #fed7d7; color: #742a2a; }
+        .status-badge.active { background: #bee3f8; color: #2c5282; }
+        .status-badge i { font-size: 8px; }
+        .type-badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; display: inline-block; }
+        .type-badge.text { background: #e6f7ff; color: #0c5282; }
+        .type-badge.file { background: #fef5e7; color: #7d5f00; }
+        .actions { display: flex; gap: 8px; }
+        .btn-action { padding: 6px 12px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+        .btn-action.view { background: #e6f7ff; color: #0c5282; border: 1px solid #90cdf4; }
+        .btn-action.view:hover { background: #90cdf4; }
+        .btn-action.edit { background: #fef5e7; color: #d69e2e; border: 1px solid #f6e05e; }
+        .btn-action.edit:hover { background: #fbd38d; }
+        .btn-action.delete { background: #fed7d7; color: #c53030; border: 1px solid #fc8181; }
+        .btn-action.delete:hover { background: #fc8181; color: white; }
+        .dataTables_wrapper { font-family: 'Inter', sans-serif !important; padding: 20px; }
+        table.dataTable thead th { background: #f7fafc !important; border: none !important; }
+        table.dataTable tbody tr:hover { background: #f7fafc !important; }
+        table.dataTable tbody td { border-bottom: 1px solid #f0f0f0 !important; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal.show { display: flex; }
+        .modal-content { background: white; padding: 32px; border-radius: 20px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 48px rgba(0,0,0,0.2); }
+        .modal-header { margin-bottom: 24px; }
+        .modal-header h3 { font-size: 22px; font-weight: 700; color: #1a202c; display: flex; align-items: center; gap: 10px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: #2d3748; font-weight: 600; font-size: 14px; }
+        .form-group label i { margin-right: 6px; color: #1a202c; }
+        .form-group input { width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; font-family: 'Inter', sans-serif; transition: all 0.3s; background: #f7fafc; }
+        .form-group input:focus { outline: none; border-color: #1a202c; background: white; box-shadow: 0 0 0 4px rgba(26,32,44,0.1); }
+        .form-group small { display: block; margin-top: 6px; color: #a0aec0; font-size: 12px; }
+        .detail-row { margin-bottom: 24px; }
+        .detail-label { font-size: 12px; font-weight: 600; color: #718096; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .detail-value { font-size: 15px; color: #2d3748; background: #f7fafc; padding: 12px 16px; border-radius: 10px; word-break: break-word; }
+        .detail-value.message { white-space: pre-wrap; font-family: inherit; line-height: 1.6; }
+        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 28px; }
+        .btn-modal { padding: 12px 24px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+        .btn-modal.cancel { background: #e2e8f0; color: #4a5568; }
+        .btn-modal.cancel:hover { background: #cbd5e0; }
+        .btn-modal.save { background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); color: white; box-shadow: 0 4px 12px rgba(26,32,44,0.3); }
+        .btn-modal.save:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(26,32,44,0.4); }
+        .empty-state { text-align: center; padding: 60px 20px; color: #a0aec0; }
+        .empty-state i { font-size: 64px; margin-bottom: 20px; opacity: 0.5; }
     </style>
 </head>
 <body>
-    <!-- Mobile Menu Button -->
-    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
-        <i class="fa-solid fa-bars"></i>
-    </button>
-    
-    <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleMobileMenu()"></div>
-    
-    <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
             <div class="logo">
-                <div class="logo-icon">
-                    <i class="fa-solid fa-shield-halved"></i>
-                </div>
+                <div class="logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
                 <div class="logo-text">
                     <h2>Admin Panel</h2>
                     <p>Super Administrador</p>
                 </div>
             </div>
         </div>
-        
         <nav class="sidebar-nav">
             <a href="#" class="nav-item active" onclick="showSection('dashboard')" id="nav-dashboard">
-                <i class="fa-solid fa-grip"></i>
-                <span>Dashboard</span>
+                <i class="fa-solid fa-grip"></i><span>Dashboard</span>
             </a>
             <a href="#" class="nav-item" onclick="showSection('messages')" id="nav-messages">
-                <i class="fa-solid fa-envelope"></i>
-                <span>Mensajes</span>
+                <i class="fa-solid fa-envelope"></i><span>Mensajes</span>
             </a>
         </nav>
-        
         <div class="sidebar-footer">
             <div class="user-profile">
                 <div class="user-avatar" id="user-avatar">A</div>
@@ -700,509 +135,311 @@
                     <div class="user-name" id="user-name">Admin</div>
                     <div class="user-role">Super Admin</div>
                 </div>
-                <button class="logout-btn" onclick="logout()" title="Cerrar Sesión">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                </button>
+                <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
             </div>
         </div>
     </div>
     
-    <!-- Main Content -->
     <div class="main-content">
-        <!-- Header -->
         <div class="header">
             <div class="header-left">
-                <h1>Dashboard</h1>
-                <p>Gestión de clientes y sistema</p>
+                <h1 id="page-title">Dashboard</h1>
+                <p id="page-subtitle">Gestión de clientes y sistema</p>
             </div>
             <div class="header-right">
-                <button class="header-btn primary" onclick="openAddModal()">
-                    <i class="fa-solid fa-plus"></i>
-                    Agregar Cliente
+                <button class="header-btn primary" onclick="openAddModal()" id="add-client-btn">
+                    <i class="fa-solid fa-plus"></i>Agregar Cliente
                 </button>
             </div>
         </div>
         
-        <!-- Content -->
         <div class="content">
-            <!-- Stats Grid -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-icon primary">
-                            <i class="fa-solid fa-users"></i>
-                        </div>
+            <div id="section-dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header"><div class="stat-icon primary"><i class="fa-solid fa-users"></i></div></div>
+                        <div class="stat-body"><h3 id="total-clients">0</h3><p>Total Clientes</p></div>
                     </div>
-                    <div class="stat-body">
-                        <h3 id="total-clients">0</h3>
-                        <p>Total Clientes</p>
+                    <div class="stat-card">
+                        <div class="stat-header"><div class="stat-icon success"><i class="fa-solid fa-circle-check"></i></div></div>
+                        <div class="stat-body"><h3 id="connected-clients">0</h3><p>Conectados</p></div>
                     </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-icon success">
-                            <i class="fa-solid fa-circle-check"></i>
-                        </div>
-                    </div>
-                    <div class="stat-body">
-                        <h3 id="connected-clients">0</h3>
-                        <p>Conectados</p>
+                    <div class="stat-card">
+                        <div class="stat-header"><div class="stat-icon danger"><i class="fa-solid fa-circle-xmark"></i></div></div>
+                        <div class="stat-body"><h3 id="disconnected-clients">0</h3><p>Desconectados</p></div>
                     </div>
                 </div>
-                
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-icon danger">
-                            <i class="fa-solid fa-circle-xmark"></i>
-                        </div>
+                <div class="table-card">
+                    <div class="table-header">
+                        <div class="table-title"><i class="fa-solid fa-users"></i><h3>Clientes Registrados</h3></div>
                     </div>
-                    <div class="stat-body">
-                        <h3 id="disconnected-clients">0</h3>
-                        <p>Desconectados</p>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr><th>Cliente</th><th>Email</th><th>WhatsApp</th><th>Número</th><th>Estado</th><th>API Key</th><th>Acciones</th></tr>
+                            </thead>
+                            <tbody id="clients-tbody">
+                                <tr><td colspan="7"><div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i><p>Cargando...</p></div></td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-            
-            <!-- Clients Table -->
-            <div class="table-card">
-                <div class="table-header">
-                    <div class="table-title">
-                        <i class="fa-solid fa-users"></i>
-                        <h3>Clientes Registrados</h3>
-                    </div>
-                </div>
-                
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Cliente</th>
-                                <th>Email</th>
-                                <th>WhatsApp</th>
-                                <th>Número</th>
-                                <th>Estado</th>
-                                <th>API Key</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="clients-tbody">
-                            <tr>
-                                <td colspan="7">
-                                    <div class="empty-state">
-                                        <i class="fa-solid fa-spinner fa-spin"></i>
-                                        <p>Cargando clientes...</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Messages Section -->
-<div id="section-messages" style="display: none;">
-    <div class="table-card">
-        <div class="table-header">
-            <div class="table-title">
-                <i class="fa-solid fa-envelope"></i>
-                <h3>Historial de Mensajes</h3>
+            <div id="section-messages" style="display: none;">
+                <div class="table-card">
+                    <div class="table-header">
+                        <div class="table-title"><i class="fa-solid fa-envelope"></i><h3>Historial de Mensajes</h3></div>
+                        <div class="filter-bar">
+                            <select id="filter-client" class="filter-select" onchange="filterMessages()">
+                                <option value="">Todos los clientes</option>
+                            </select>
+                            <select id="filter-status" class="filter-select" onchange="filterMessages()">
+                                <option value="">Todos los estados</option>
+                                <option value="sent">Enviados</option>
+                                <option value="failed">Fallidos</option>
+                            </select>
+                            <button onclick="loadAllMessages()" class="header-btn primary"><i class="fa-solid fa-rotate"></i>Actualizar</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="messagesTable" class="display" style="width:100%">
+                            <thead>
+                                <tr><th>Cliente</th><th>Fecha</th><th>Teléfono</th><th>Tipo</th><th>Mensaje</th><th>Estado</th><th>Tiempo</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <div class="filter-bar">
-                <select id="filter-client" class="filter-select" onchange="filterMessages()">
-                    <option value="">Todos los clientes</option>
-                </select>
-                <select id="filter-status" class="filter-select" onchange="filterMessages()">
-                    <option value="">Todos los estados</option>
-                    <option value="sent">Enviados</option>
-                    <option value="failed">Fallidos</option>
-                </select>
-                <button onclick="loadAllMessages()" class="header-btn primary">
-                    <i class="fa-solid fa-rotate"></i>
-                    Actualizar
-                </button>
-            </div>
-        </div>
-        <div class="table-container">
-            <table id="messagesTable" class="display" style="width:100%">
-                <thead>
-                    <tr>
-                        <th>Cliente</th>
-                        <th>Fecha</th>
-                        <th>Teléfono</th>
-                        <th>Tipo</th>
-                        <th>Mensaje</th>
-                        <th>Estado</th>
-                        <th>Tiempo</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
         </div>
     </div>
-</div>
     
-    <!-- Modal: Add/Edit Client -->
     <div class="modal" id="client-modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modal-title">
-                    <i class="fa-solid fa-user-plus"></i>
-                    Agregar Nuevo Cliente
-                </h3>
-            </div>
-            
+            <div class="modal-header"><h3 id="modal-title"><i class="fa-solid fa-user-plus"></i>Agregar Nuevo Cliente</h3></div>
             <form id="client-form" onsubmit="saveClient(event)">
                 <input type="hidden" id="client-id">
-                
                 <div class="form-group">
-                    <label>
-                        <i class="fa-solid fa-id-card"></i>
-                        ID del Cliente
-                    </label>
+                    <label><i class="fa-solid fa-id-card"></i>ID del Cliente</label>
                     <input type="text" id="client-slug" placeholder="activgym" required>
                     <small>Solo letras minúsculas y números (sin espacios)</small>
                 </div>
-                
                 <div class="form-group">
-                    <label>
-                        <i class="fa-solid fa-building"></i>
-                        Nombre del Negocio
-                    </label>
+                    <label><i class="fa-solid fa-building"></i>Nombre del Negocio</label>
                     <input type="text" id="client-name" placeholder="ActivGym" required>
                 </div>
-                
                 <div class="form-group">
-                    <label>
-                        <i class="fa-solid fa-envelope"></i>
-                        Email
-                    </label>
+                    <label><i class="fa-solid fa-envelope"></i>Email</label>
                     <input type="email" id="client-email" placeholder="admin@activgym.com" required>
                 </div>
-                
                 <div class="form-group">
-                    <label>
-                        <i class="fa-solid fa-lock"></i>
-                        Contraseña
-                    </label>
+                    <label><i class="fa-solid fa-lock"></i>Contraseña</label>
                     <input type="password" id="client-password" placeholder="••••••••">
                     <small>Dejar vacío para mantener la actual (solo al editar)</small>
                 </div>
-                
                 <div class="modal-actions">
-                    <button type="button" class="btn-modal cancel" onclick="closeModal()">
-                        <i class="fa-solid fa-xmark"></i>
-                        Cancelar
-                    </button>
-                    <button type="submit" class="btn-modal save">
-                        <i class="fa-solid fa-check"></i>
-                        Guardar
-                    </button>
+                    <button type="button" class="btn-modal cancel" onclick="closeModal()"><i class="fa-solid fa-xmark"></i>Cancelar</button>
+                    <button type="submit" class="btn-modal save"><i class="fa-solid fa-check"></i>Guardar</button>
                 </div>
             </form>
         </div>
     </div>
     
-    <!-- Modal: View Client Details -->
     <div class="modal" id="view-modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3>
-                    <i class="fa-solid fa-eye"></i>
-                    Detalles del Cliente
-                </h3>
-            </div>
-            
+            <div class="modal-header"><h3><i class="fa-solid fa-eye"></i>Detalles del Cliente</h3></div>
             <div style="padding: 8px 0;">
                 <div class="form-group">
-                    <label>
-                        <i class="fa-solid fa-id-card"></i>
-                        ID del Cliente
-                    </label>
+                    <label><i class="fa-solid fa-id-card"></i>ID del Cliente</label>
                     <div style="background: #f7fafc; padding: 12px 16px; border-radius: 10px; font-family: monospace; color: #2d3748;" id="view-client-id"></div>
                 </div>
-                
                 <div class="form-group">
-                    <label>
-                        <i class="fa-solid fa-building"></i>
-                        Nombre del Negocio
-                    </label>
+                    <label><i class="fa-solid fa-building"></i>Nombre del Negocio</label>
                     <div style="background: #f7fafc; padding: 12px 16px; border-radius: 10px; color: #2d3748;" id="view-client-name"></div>
                 </div>
-                
                 <div class="form-group">
-                    <label>
-                        <i class="fa-solid fa-envelope"></i>
-                        Email
-                    </label>
+                    <label><i class="fa-solid fa-envelope"></i>Email</label>
                     <div style="background: #f7fafc; padding: 12px 16px; border-radius: 10px; color: #2d3748;" id="view-client-email"></div>
                 </div>
-                
                 <div class="form-group">
-                    <label>
-                        <i class="fa-solid fa-key"></i>
-                        API Key
-                    </label>
+                    <label><i class="fa-solid fa-key"></i>API Key</label>
                     <div style="background: #f7fafc; padding: 12px 16px; border-radius: 10px; font-family: monospace; font-size: 12px; color: #2d3748; word-break: break-all; position: relative;">
                         <span id="view-api-key"></span>
                         <button onclick="copyApiKey()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: #1a202c; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; display: flex; align-items: center; gap: 6px;">
-                            <i class="fa-solid fa-copy"></i>
-                            Copiar
+                            <i class="fa-solid fa-copy"></i>Copiar
                         </button>
                     </div>
                 </div>
-                
                 <div class="form-group">
-                    <label>
-                        <i class="fa-brands fa-whatsapp"></i>
-                        Estado de WhatsApp
-                    </label>
+                    <label><i class="fa-brands fa-whatsapp"></i>Estado de WhatsApp</label>
                     <div id="view-whatsapp-status"></div>
                 </div>
-                
                 <div class="form-group">
-                    <label>
-                        <i class="fa-solid fa-phone"></i>
-                        Número de Teléfono
-                    </label>
+                    <label><i class="fa-solid fa-phone"></i>Número de Teléfono</label>
                     <div style="background: #f7fafc; padding: 12px 16px; border-radius: 10px; color: #2d3748;" id="view-phone"></div>
                 </div>
-                
                 <div class="form-group">
-                    <label>
-                        <i class="fa-solid fa-circle-info"></i>
-                        Estado de Cuenta
-                    </label>
+                    <label><i class="fa-solid fa-circle-info"></i>Estado de Cuenta</label>
                     <div id="view-status"></div>
                 </div>
-                
                 <div class="form-group">
-                    <label>
-                        <i class="fa-solid fa-calendar"></i>
-                        Fecha de Registro
-                    </label>
+                    <label><i class="fa-solid fa-calendar"></i>Fecha de Registro</label>
                     <div style="background: #f7fafc; padding: 12px 16px; border-radius: 10px; color: #2d3748;" id="view-created"></div>
                 </div>
             </div>
-            
             <div class="modal-actions">
-                <button type="button" class="btn-modal cancel" onclick="closeViewModal()">
-                    <i class="fa-solid fa-xmark"></i>
-                    Cerrar
-                </button>
+                <button type="button" class="btn-modal cancel" onclick="closeViewModal()"><i class="fa-solid fa-xmark"></i>Cerrar</button>
             </div>
         </div>
     </div>
 
-
-    <!-- Modal: Message Details -->
-<div class="modal" id="message-modal" onclick="closeMessageModal(event)">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <div class="modal-header">
-            <h3>
-                <i class="fa-solid fa-message"></i>
-                Detalle del Mensaje
-            </h3>
-        </div>
-        <div class="modal-body">
-            <div class="detail-row">
-                <div class="detail-label"><i class="fa-solid fa-user"></i> Cliente</div>
-                <div class="detail-value" id="modal-client"></div>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label"><i class="fa-solid fa-calendar"></i> Fecha y Hora</div>
-                <div class="detail-value" id="modal-date"></div>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label"><i class="fa-solid fa-phone"></i> Teléfono</div>
-                <div class="detail-value" id="modal-phone"></div>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label"><i class="fa-solid fa-tag"></i> Tipo</div>
-                <div class="detail-value" id="modal-type"></div>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label"><i class="fa-solid fa-message"></i> Mensaje</div>
-                <div class="detail-value message" id="modal-message"></div>
-            </div>
-            <div class="detail-row" id="file-row" style="display: none;">
-                <div class="detail-label"><i class="fa-solid fa-paperclip"></i> Archivo</div>
-                <div class="detail-value">
-                    <a href="#" id="modal-file" target="_blank" style="color: #1a202c;">Ver archivo</a>
+    <div class="modal" id="message-modal" onclick="closeMessageModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header"><h3><i class="fa-solid fa-message"></i>Detalle del Mensaje</h3></div>
+            <div class="modal-body">
+                <div class="detail-row">
+                    <div class="detail-label"><i class="fa-solid fa-user"></i> Cliente</div>
+                    <div class="detail-value" id="modal-client"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label"><i class="fa-solid fa-calendar"></i> Fecha y Hora</div>
+                    <div class="detail-value" id="modal-date"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label"><i class="fa-solid fa-phone"></i> Teléfono</div>
+                    <div class="detail-value" id="modal-phone"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label"><i class="fa-solid fa-tag"></i> Tipo</div>
+                    <div class="detail-value" id="modal-type"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label"><i class="fa-solid fa-message"></i> Mensaje</div>
+                    <div class="detail-value message" id="modal-message"></div>
+                </div>
+                <div class="detail-row" id="file-row" style="display: none;">
+                    <div class="detail-label"><i class="fa-solid fa-paperclip"></i> Archivo</div>
+                    <div class="detail-value">
+                        <a href="#" id="modal-file" target="_blank" style="color: #1a202c;">Ver archivo</a>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label"><i class="fa-solid fa-circle-check"></i> Estado</div>
+                    <div class="detail-value" id="modal-status"></div>
+                </div>
+                <div class="detail-row" id="error-row" style="display: none;">
+                    <div class="detail-label"><i class="fa-solid fa-triangle-exclamation"></i> Error</div>
+                    <div class="detail-value" style="background: #fed7d7; color: #742a2a;" id="modal-error"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label"><i class="fa-solid fa-clock"></i> Tiempo</div>
+                    <div class="detail-value" id="modal-time"></div>
                 </div>
             </div>
-            <div class="detail-row">
-                <div class="detail-label"><i class="fa-solid fa-circle-check"></i> Estado</div>
-                <div class="detail-value" id="modal-status"></div>
+            <div class="modal-actions">
+                <button type="button" class="btn-modal cancel" onclick="closeMessageModal()"><i class="fa-solid fa-xmark"></i>Cerrar</button>
             </div>
-            <div class="detail-row" id="error-row" style="display: none;">
-                <div class="detail-label"><i class="fa-solid fa-triangle-exclamation"></i> Error</div>
-                <div class="detail-value" style="background: #fed7d7; color: #742a2a;" id="modal-error"></div>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label"><i class="fa-solid fa-clock"></i> Tiempo</div>
-                <div class="detail-value" id="modal-time"></div>
-            </div>
-        </div>
-        <div class="modal-actions">
-            <button type="button" class="btn-modal cancel" onclick="closeMessageModal()">
-                <i class="fa-solid fa-xmark"></i>
-                Cerrar
-            </button>
         </div>
     </div>
-</div>
    
-<!-- jQuery -->
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-
-<!-- DataTables -->
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script>
         let adminToken = localStorage.getItem('admin_token');
-        let clients = [];
-        
-        // Verificar autenticación
-        if (!adminToken) {
-            window.location.href = '/admin-login.html';
-        }
-        
-        // Cargar datos del admin
+        let clients = [], messagesTable = null, allMessages = [];
+        if (!adminToken) window.location.href = '/admin-login.html';
         const adminUsername = localStorage.getItem('admin_username') || 'Admin';
         document.getElementById('user-name').textContent = adminUsername;
         document.getElementById('user-avatar').textContent = adminUsername.charAt(0).toUpperCase();
         
-        // Cargar clientes
-        async function loadClients() {
-            try {
-                const response = await fetch('/api/admin/clients', {
-                    headers: {
-                        'X-Admin-Token': adminToken
-                    }
-                });
-                
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        localStorage.clear();
-                        window.location.href = '/admin-login.html';
-                        return;
-                    }
-                    throw new Error('Error cargando clientes');
-                }
-                
-                const data = await response.json();
-                clients = data.clients || [];
-                
-                renderClients();
-                updateStats();
-                
-            } catch (error) {
-                console.error('Error:', error);
+        function showSection(section) {
+            document.getElementById('section-dashboard').style.display = 'none';
+            document.getElementById('section-messages').style.display = 'none';
+            document.getElementById('nav-dashboard').classList.remove('active');
+            document.getElementById('nav-messages').classList.remove('active');
+            if (section === 'dashboard') {
+                document.getElementById('section-dashboard').style.display = 'block';
+                document.getElementById('nav-dashboard').classList.add('active');
+                document.getElementById('page-title').textContent = 'Dashboard';
+                document.getElementById('page-subtitle').textContent = 'Gestión de clientes y sistema';
+                document.getElementById('add-client-btn').style.display = 'flex';
+            } else if (section === 'messages') {
+                document.getElementById('section-messages').style.display = 'block';
+                document.getElementById('nav-messages').classList.add('active');
+                document.getElementById('page-title').textContent = 'Historial de Mensajes';
+                document.getElementById('page-subtitle').textContent = 'Todos los mensajes enviados';
+                document.getElementById('add-client-btn').style.display = 'none';
+                if (!allMessages.length) loadAllMessages();
             }
         }
         
-        // Renderizar tabla
+        async function loadClients() {
+            try {
+                const response = await fetch('/api/admin/clients', { headers: { 'X-Admin-Token': adminToken } });
+                if (!response.ok) {
+                    if (response.status === 401) { localStorage.clear(); window.location.href = '/admin-login.html'; return; }
+                    throw new Error('Error cargando clientes');
+                }
+                const data = await response.json();
+                clients = data.clients || [];
+                renderClients();
+                updateStats();
+            } catch (error) { console.error('Error:', error); }
+        }
+        
         function renderClients() {
             const tbody = document.getElementById('clients-tbody');
-            
             if (clients.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7">
-                            <div class="empty-state">
-                                <i class="fa-solid fa-users-slash"></i>
-                                <p>No hay clientes registrados</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fa-solid fa-users-slash"></i><p>No hay clientes</p></div></td></tr>`;
                 return;
             }
-            
             tbody.innerHTML = clients.map(client => `
                 <tr>
-                    <td>
-                        <strong>${client.name}</strong><br>
-                        <small style="color: #a0aec0;">${client.client_id}</small>
-                    </td>
+                    <td><strong>${client.name}</strong><br><small style="color: #a0aec0;">${client.client_id}</small></td>
                     <td>${client.email}</td>
-                    <td>
-                        <span class="status-badge ${client.whatsapp_connected ? 'connected' : 'disconnected'}">
-                            <i class="fa-solid fa-circle"></i>
-                            ${client.whatsapp_connected ? 'Conectado' : 'Desconectado'}
-                        </span>
-                    </td>
+                    <td><span class="status-badge ${client.whatsapp_connected ? 'connected' : 'disconnected'}"><i class="fa-solid fa-circle"></i>${client.whatsapp_connected ? 'Conectado' : 'Desconectado'}</span></td>
                     <td>${client.phone_number || '-'}</td>
-                    <td>
-                        <span class="status-badge active">
-                            ${client.status}
-                        </span>
-                    </td>
+                    <td><span class="status-badge active">${client.status}</span></td>
                     <td><code style="font-size: 11px; color: #a0aec0;">${client.api_key.substring(0, 16)}...</code></td>
                     <td>
                         <div class="actions">
-                            <button class="btn-action view" onclick="viewClient('${client.client_id}')">
-                                <i class="fa-solid fa-eye"></i>
-                                Ver
-                            </button>
-                            <button class="btn-action edit" onclick="editClient('${client.client_id}')">
-                                <i class="fa-solid fa-pen"></i>
-                                Editar
-                            </button>
-                            <button class="btn-action delete" onclick="deleteClient('${client.client_id}')">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
+                            <button class="btn-action view" onclick="viewClient('${client.client_id}')"><i class="fa-solid fa-eye"></i>Ver</button>
+                            <button class="btn-action edit" onclick="editClient('${client.client_id}')"><i class="fa-solid fa-pen"></i>Editar</button>
+                            <button class="btn-action delete" onclick="deleteClient('${client.client_id}')"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </td>
                 </tr>
             `).join('');
         }
         
-        // Actualizar estadísticas
         function updateStats() {
             document.getElementById('total-clients').textContent = clients.length;
-            document.getElementById('connected-clients').textContent = 
-                clients.filter(c => c.whatsapp_connected).length;
-            document.getElementById('disconnected-clients').textContent = 
-                clients.filter(c => !c.whatsapp_connected).length;
+            document.getElementById('connected-clients').textContent = clients.filter(c => c.whatsapp_connected).length;
+            document.getElementById('disconnected-clients').textContent = clients.filter(c => !c.whatsapp_connected).length;
         }
         
-        // Abrir modal agregar
         function openAddModal() {
-            document.getElementById('modal-title').innerHTML = `
-                <i class="fa-solid fa-user-plus"></i>
-                Agregar Nuevo Cliente
-            `;
+            document.getElementById('modal-title').innerHTML = `<i class="fa-solid fa-user-plus"></i>Agregar Nuevo Cliente`;
             document.getElementById('client-form').reset();
             document.getElementById('client-id').value = '';
             document.getElementById('client-modal').classList.add('show');
         }
         
-        // Editar cliente
         function editClient(clientId) {
             const client = clients.find(c => c.client_id === clientId);
             if (!client) return;
-            
-            document.getElementById('modal-title').innerHTML = `
-                <i class="fa-solid fa-pen"></i>
-                Editar Cliente
-            `;
+            document.getElementById('modal-title').innerHTML = `<i class="fa-solid fa-pen"></i>Editar Cliente`;
             document.getElementById('client-id').value = client.client_id;
             document.getElementById('client-slug').value = client.client_id;
             document.getElementById('client-name').value = client.name;
             document.getElementById('client-email').value = client.email;
             document.getElementById('client-password').value = '';
-            
             document.getElementById('client-modal').classList.add('show');
         }
         
-        // Guardar cliente
         async function saveClient(event) {
             event.preventDefault();
-            
             const clientId = document.getElementById('client-id').value;
             const data = {
                 client_id: document.getElementById('client-slug').value,
@@ -1210,306 +447,157 @@
                 email: document.getElementById('client-email').value,
                 password: document.getElementById('client-password').value
             };
-            
             try {
-                const url = clientId 
-                    ? `/api/admin/clients/${clientId}`
-                    : '/api/admin/clients';
-                
+                const url = clientId ? `/api/admin/clients/${clientId}` : '/api/admin/clients';
                 const method = clientId ? 'PUT' : 'POST';
-                
                 const response = await fetch(url, {
                     method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Admin-Token': adminToken
-                    },
+                    headers: { 'Content-Type': 'application/json', 'X-Admin-Token': adminToken },
                     body: JSON.stringify(data)
                 });
-                
                 const result = await response.json();
-                
                 if (result.success) {
                     closeModal();
                     loadClients();
-                    alert('✅ Cliente guardado correctamente');
+                    alert('✅ Cliente guardado');
                 } else {
                     alert('❌ ' + result.error);
                 }
-                
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            }
+            } catch (error) { alert('❌ Error: ' + error.message); }
         }
         
-        // Ver cliente
         function viewClient(clientId) {
             const client = clients.find(c => c.client_id === clientId);
             if (!client) return;
-            
             document.getElementById('view-client-id').textContent = client.client_id;
             document.getElementById('view-client-name').textContent = client.name;
             document.getElementById('view-client-email').textContent = client.email;
             document.getElementById('view-api-key').textContent = client.api_key;
-            
-            // Estado de WhatsApp
             const whatsappStatus = document.getElementById('view-whatsapp-status');
             whatsappStatus.innerHTML = client.whatsapp_connected 
                 ? '<span class="status-badge connected"><i class="fa-solid fa-circle"></i> Conectado</span>'
                 : '<span class="status-badge disconnected"><i class="fa-solid fa-circle"></i> Desconectado</span>';
-            
-            // Número de teléfono
             document.getElementById('view-phone').textContent = client.phone_number || 'No disponible';
-            
-            // Estado de cuenta
             const statusDiv = document.getElementById('view-status');
             statusDiv.innerHTML = '<span class="status-badge active">' + client.status + '</span>';
-            
-            // Fecha de registro
             const createdDate = new Date(client.created_at);
             document.getElementById('view-created').textContent = createdDate.toLocaleString('es-CO', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+                year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
             });
-            
             document.getElementById('view-modal').classList.add('show');
         }
         
-        // Copiar API Key
         function copyApiKey() {
             const apiKey = document.getElementById('view-api-key').textContent;
             navigator.clipboard.writeText(apiKey);
-            alert('✅ API Key copiada al portapapeles');
+            alert('✅ API Key copiada');
         }
         
-        // Cerrar modal de ver
-        function closeViewModal() {
-            document.getElementById('view-modal').classList.remove('show');
-        }
+        function closeViewModal() { document.getElementById('view-modal').classList.remove('show'); }
         
-        // Eliminar cliente
         async function deleteClient(clientId) {
-            if (!confirm(`¿Eliminar el cliente "${clientId}"?\n\nEsta acción no se puede deshacer.`)) {
-                return;
-            }
-            
+            if (!confirm(`¿Eliminar "${clientId}"?`)) return;
             try {
                 const response = await fetch(`/api/admin/clients/${clientId}`, {
                     method: 'DELETE',
-                    headers: {
-                        'X-Admin-Token': adminToken
-                    }
+                    headers: { 'X-Admin-Token': adminToken }
                 });
-                
                 const result = await response.json();
-                
-                if (result.success) {
-                    loadClients();
-                    alert('✅ Cliente eliminado');
-                } else {
-                    alert('❌ ' + result.error);
-                }
-                
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            }
+                if (result.success) { loadClients(); alert('✅ Cliente eliminado'); }
+                else alert('❌ ' + result.error);
+            } catch (error) { alert('❌ Error: ' + error.message); }
         }
         
-        // Cerrar modal
-        function closeModal() {
-            document.getElementById('client-modal').classList.remove('show');
+        function closeModal() { document.getElementById('client-modal').classList.remove('show'); }
+        function logout() { if (confirm('¿Cerrar sesión?')) { localStorage.clear(); window.location.href = '/admin-login.html'; } }
+        
+        async function loadAllMessages() {
+            try {
+                const response = await fetch('/api/admin/messages', { headers: { 'X-Admin-Token': adminToken } });
+                if (!response.ok) throw new Error('Error');
+                const data = await response.json();
+                allMessages = data.messages || [];
+                const clientFilter = document.getElementById('filter-client');
+                const uniqueClients = [...new Set(allMessages.map(m => m.client_id))];
+                clientFilter.innerHTML = '<option value="">Todos</option>' +
+                    uniqueClients.map(c => `<option value="${c}">${c}</option>`).join('');
+                filterMessages();
+            } catch (error) { console.error('Error:', error); }
         }
         
-        // Toggle mobile menu
-        function toggleMobileMenu() {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            
-            sidebar.classList.toggle('mobile-open');
-            overlay.classList.toggle('show');
+        function filterMessages() {
+            const clientFilter = document.getElementById('filter-client').value;
+            const statusFilter = document.getElementById('filter-status').value;
+            let filtered = allMessages;
+            if (clientFilter) filtered = filtered.filter(m => m.client_id === clientFilter);
+            if (statusFilter) filtered = filtered.filter(m => m.status === statusFilter);
+            renderMessagesTable(filtered);
         }
         
-        // Cerrar sesión
-        function logout() {
-            if (confirm('¿Cerrar sesión?')) {
-                localStorage.clear();
-                window.location.href = '/admin-login.html';
-            }
+        function renderMessagesTable(messages) {
+            if (messagesTable) messagesTable.destroy();
+            $('#messagesTable tbody').empty();
+            messages.forEach(msg => {
+                const row = `
+                    <tr onclick="showMessageDetail(${msg.id})" style="cursor: pointer;">
+                        <td><strong>${msg.client_id}</strong></td>
+                        <td>${formatDate(msg.created_at)}</td>
+                        <td>${msg.phone_number}</td>
+                        <td><span class="type-badge ${msg.message_type}">${msg.message_type}</span></td>
+                        <td>${truncate(msg.message_text, 50)}</td>
+                        <td><span class="status-badge ${msg.status}"><i class="fa-solid fa-circle"></i> ${msg.status}</span></td>
+                        <td>${msg.response_time ? msg.response_time + 'ms' : '-'}</td>
+                    </tr>
+                `;
+                $('#messagesTable tbody').append(row);
+            });
+            messagesTable = $('#messagesTable').DataTable({
+                order: [[1, 'desc']], pageLength: 25,
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' }
+            });
+            window.messagesData = messages;
         }
         
-        // Iniciar
+        function showMessageDetail(messageId) {
+            const message = window.messagesData.find(m => m.id === messageId);
+            if (!message) return;
+            document.getElementById('modal-client').textContent = message.client_id;
+            document.getElementById('modal-date').textContent = formatDateFull(message.created_at);
+            document.getElementById('modal-phone').textContent = message.phone_number;
+            document.getElementById('modal-type').innerHTML = `<span class="type-badge ${message.message_type}">${message.message_type}</span>`;
+            document.getElementById('modal-message').textContent = message.message_text || 'Sin texto';
+            if (message.file_url) {
+                document.getElementById('file-row').style.display = 'block';
+                document.getElementById('modal-file').href = message.file_url;
+            } else document.getElementById('file-row').style.display = 'none';
+            document.getElementById('modal-status').innerHTML = `<span class="status-badge ${message.status}">${message.status}</span>`;
+            if (message.error_message) {
+                document.getElementById('error-row').style.display = 'block';
+                document.getElementById('modal-error').textContent = message.error_message;
+            } else document.getElementById('error-row').style.display = 'none';
+            document.getElementById('modal-time').textContent = message.response_time ? message.response_time + ' ms' : 'N/A';
+            document.getElementById('message-modal').classList.add('show');
+        }
+        
+        function closeMessageModal(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('message-modal').classList.remove('show');
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+        
+        function formatDateFull(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+        
+        function truncate(str, length) { if (!str) return '-'; return str.length > length ? str.substring(0, length) + '...' : str; }
+        
         loadClients();
-        setInterval(loadClients, 5000); // Auto-refresh cada 5 segundos
-
-
-        let messagesTable = null;
-let allMessages = [];
-
-// Mostrar secciones
-function showSection(section) {
-    document.getElementById('section-dashboard')?.style.setProperty('display', 'none');
-    document.getElementById('section-messages')?.style.setProperty('display', 'none');
-    
-    document.getElementById('nav-dashboard')?.classList.remove('active');
-    document.getElementById('nav-messages')?.classList.remove('active');
-    
-    if (section === 'dashboard') {
-        document.getElementById('section-dashboard').style.display = 'block';
-        document.getElementById('nav-dashboard').classList.add('active');
-        document.querySelector('.header-left h1').textContent = 'Dashboard';
-        document.querySelector('.header-left p').textContent = 'Gestión de clientes y sistema';
-    } else if (section === 'messages') {
-        document.getElementById('section-messages').style.display = 'block';
-        document.getElementById('nav-messages').classList.add('active');
-        document.querySelector('.header-left h1').textContent = 'Historial de Mensajes';
-        document.querySelector('.header-left p').textContent = 'Todos los mensajes enviados en el sistema';
-        if (!allMessages.length) loadAllMessages();
-    }
-}
-
-// Cargar todos los mensajes
-async function loadAllMessages() {
-    try {
-        const response = await fetch('/api/admin/messages', {
-            headers: { 'X-Admin-Token': adminToken }
-        });
-        
-        if (!response.ok) throw new Error('Error cargando mensajes');
-        
-        const data = await response.json();
-        allMessages = data.messages || [];
-        
-        // Poblar filtro de clientes
-        const clientFilter = document.getElementById('filter-client');
-        const uniqueClients = [...new Set(allMessages.map(m => m.client_id))];
-        clientFilter.innerHTML = '<option value="">Todos los clientes</option>' +
-            uniqueClients.map(c => `<option value="${c}">${c}</option>`).join('');
-        
-        filterMessages();
-        
-    } catch (error) {
-        console.error('Error:', error);
-    }
-}
-
-// Filtrar mensajes
-function filterMessages() {
-    const clientFilter = document.getElementById('filter-client').value;
-    const statusFilter = document.getElementById('filter-status').value;
-    
-    let filtered = allMessages;
-    
-    if (clientFilter) {
-        filtered = filtered.filter(m => m.client_id === clientFilter);
-    }
-    
-    if (statusFilter) {
-        filtered = filtered.filter(m => m.status === statusFilter);
-    }
-    
-    renderMessagesTable(filtered);
-}
-
-// Renderizar tabla
-function renderMessagesTable(messages) {
-    if (messagesTable) messagesTable.destroy();
-    
-    $('#messagesTable tbody').empty();
-    
-    messages.forEach(msg => {
-        const row = `
-            <tr onclick="showMessageDetail(${msg.id})" style="cursor: pointer;">
-                <td><strong>${msg.client_id}</strong></td>
-                <td>${formatDate(msg.created_at)}</td>
-                <td>${msg.phone_number}</td>
-                <td><span class="type-badge ${msg.message_type}">${msg.message_type}</span></td>
-                <td>${truncate(msg.message_text, 50)}</td>
-                <td><span class="status-badge ${msg.status}"><i class="fa-solid fa-circle"></i> ${msg.status}</span></td>
-                <td>${msg.response_time ? msg.response_time + 'ms' : '-'}</td>
-            </tr>
-        `;
-        $('#messagesTable tbody').append(row);
-    });
-    
-    messagesTable = $('#messagesTable').DataTable({
-        order: [[1, 'desc']],
-        pageLength: 25,
-        language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' }
-    });
-    
-    window.messagesData = messages;
-}
-
-// Mostrar detalle
-function showMessageDetail(messageId) {
-    const message = window.messagesData.find(m => m.id === messageId);
-    if (!message) return;
-    
-    document.getElementById('modal-client').textContent = message.client_id;
-    document.getElementById('modal-date').textContent = formatDateFull(message.created_at);
-    document.getElementById('modal-phone').textContent = message.phone_number;
-    document.getElementById('modal-type').innerHTML = `<span class="type-badge ${message.message_type}">${message.message_type}</span>`;
-    document.getElementById('modal-message').textContent = message.message_text || 'Sin texto';
-    
-    if (message.file_url) {
-        document.getElementById('file-row').style.display = 'block';
-        document.getElementById('modal-file').href = message.file_url;
-    } else {
-        document.getElementById('file-row').style.display = 'none';
-    }
-    
-    document.getElementById('modal-status').innerHTML = `<span class="status-badge ${message.status}">${message.status}</span>`;
-    
-    if (message.error_message) {
-        document.getElementById('error-row').style.display = 'block';
-        document.getElementById('modal-error').textContent = message.error_message;
-    } else {
-        document.getElementById('error-row').style.display = 'none';
-    }
-    
-    document.getElementById('modal-time').textContent = message.response_time ? message.response_time + ' ms' : 'N/A';
-    document.getElementById('message-modal').classList.add('show');
-}
-
-// Cerrar modal
-function closeMessageModal(event) {
-    if (event && event.target !== event.currentTarget) return;
-    document.getElementById('message-modal').classList.remove('show');
-}
-
-// Formatear fecha
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleString('es-CO', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-}
-
-function formatDateFull(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleString('es-CO', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    });
-}
-
-// Truncar texto
-function truncate(str, length) {
-    if (!str) return '-';
-    return str.length > length ? str.substring(0, length) + '...' : str;
-}
+        setInterval(loadClients, 5000);
     </script>
 </body>
 </html>
