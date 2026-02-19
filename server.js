@@ -752,7 +752,10 @@ app.get('/api/my-messages', authenticateSession, async (req, res) => {
         const clientId = req.client.client_id;
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;
-        const status = req.query.status; // 'sent', 'failed', 'all'
+        const status = req.query.status;
+        
+        console.log(`📊 [DEBUG] Consultando mensajes para: ${clientId}`);
+        console.log(`📊 [DEBUG] Limit: ${limit}, Offset: ${offset}, Status: ${status}`);
         
         let query = `
             SELECT 
@@ -780,9 +783,13 @@ app.get('/api/my-messages', authenticateSession, async (req, res) => {
         query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
         params.push(limit, offset);
         
+        console.log(`📊 [DEBUG] Query: ${query}`);
+        console.log(`📊 [DEBUG] Params:`, params);
+        
         const [messages] = await pool.execute(query, params);
         
-        // Contar total
+        console.log(`✅ [DEBUG] Encontrados ${messages.length} mensajes`);
+        
         const [countResult] = await pool.execute(
             'SELECT COUNT(*) as total FROM message_logs WHERE client_id = ?',
             [clientId]
@@ -797,6 +804,8 @@ app.get('/api/my-messages', authenticateSession, async (req, res) => {
         });
         
     } catch (error) {
+        console.error('❌ [ERROR] Error en /api/my-messages:', error.message);
+        console.error('❌ [ERROR] Stack:', error.stack);
         res.status(500).json({
             success: false,
             error: error.message
