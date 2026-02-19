@@ -975,6 +975,64 @@ app.use((req, res) => {
     });
 });
 
+// ========== INICIALIZACIÓN AUTOMÁTICA AL ARRANQUE ==========
+
+async function initializeAllWhatsAppConnections() {
+    try {
+        console.log('🔄 Inicializando conexiones de WhatsApp...');
+        
+        const [clients] = await pool.execute(
+            'SELECT client_id FROM clients WHERE status = "active"'
+        );
+        
+        console.log(`📱 Encontrados ${clients.length} clientes activos`);
+        
+        for (const client of clients) {
+            try {
+                console.log(`🔌 Inicializando WhatsApp para: ${client.client_id}`);
+                await ensureInitialized(client.client_id);
+            } catch (error) {
+                console.error(`❌ Error inicializando ${client.client_id}:`, error.message);
+            }
+        }
+        
+        console.log('✅ Inicialización de WhatsApp completada\n');
+    } catch (error) {
+        console.error('❌ Error en inicialización automática:', error.message);
+    }
+}
+
+// ========== KEEPALIVE AUTOMÁTICO ==========
+
+function startWhatsAppKeepalive() {
+    // Cada 24 horas, verifica todas las conexiones
+    setInterval(async () => {
+        console.log('🔄 Ejecutando keepalive de WhatsApp...');
+        
+        for (const clientId in whatsappInstances) {
+            try {
+                const waData = whatsappInstances[clientId];
+                if (waData && waData.instance) {
+                    const status = waData.instance.getStatus();
+                    
+                    if (status) {
+                        // Conexión activa, hacer un "ping" silencioso
+                        console.log(`✅ [${clientId}] Conexión activa`);
+                    } else {
+                        // Conexión caída, reintentar
+                        console.log(`🔄 [${clientId}] Reconectando...`);
+                        await ensureInitialized(clientId);
+                    }
+                }
+            } catch (error) {
+                console.error(`❌ [${clientId}] Error en keepalive:`, error.message);
+            }
+        }
+    }, 24 * 60 * 60 * 1000); // 24 horas
+}
+
+
+
 // ========== INICIAR SERVIDOR ==========
 
 app.listen(PORT, '0.0.0.0', async () => {
@@ -988,6 +1046,16 @@ app.listen(PORT, '0.0.0.0', async () => {
     try {
         await pool.execute('SELECT 1');
         console.log('✅ Conexión a MySQL exitosa\n');
+
+        // ✨ INICIALIZAR EN SEGUNDO PLANO (no bloquea el arranque)
+        setTimeout(async () => {
+            await initializeAllWhatsAppConnections();
+            
+            // ✨ INICIAR KEEPALIVE
+            startWhatsAppKeepalive();
+            console.log('🔄 Keepalive iniciado (verificación cada 24h)\n');
+        }, 2000); // Espera 2 segundos después del arranque
+
     } catch (error) {
         console.error('❌ Error conectando a MySQL:', error.message);
         console.error('   Verifica la configuración en dbConfig\n');
