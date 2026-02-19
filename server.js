@@ -755,7 +755,6 @@ app.get('/api/my-messages', authenticateSession, async (req, res) => {
         const status = req.query.status;
         
         console.log(`📊 [DEBUG] Consultando mensajes para: ${clientId}`);
-        console.log(`📊 [DEBUG] Limit: ${limit}, Offset: ${offset}, Status: ${status}`);
         
         let query = `
             SELECT 
@@ -767,6 +766,8 @@ app.get('/api/my-messages', authenticateSession, async (req, res) => {
                 caption,
                 status,
                 error_message,
+                message_id,
+                timestamp_sent,
                 response_time,
                 created_at
             FROM message_logs
@@ -780,11 +781,9 @@ app.get('/api/my-messages', authenticateSession, async (req, res) => {
             params.push(status);
         }
         
-        query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
-        params.push(limit, offset);
+        query += ` ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
         
-        console.log(`📊 [DEBUG] Query: ${query}`);
-        console.log(`📊 [DEBUG] Params:`, params);
+        console.log(`📊 [DEBUG] Ejecutando query...`);
         
         const [messages] = await pool.execute(query, params);
         
@@ -805,7 +804,6 @@ app.get('/api/my-messages', authenticateSession, async (req, res) => {
         
     } catch (error) {
         console.error('❌ [ERROR] Error en /api/my-messages:', error.message);
-        console.error('❌ [ERROR] Stack:', error.stack);
         res.status(500).json({
             success: false,
             error: error.message
