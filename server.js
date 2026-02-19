@@ -15,6 +15,19 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const WhatsAppConnection = require('./whatsapp');
 
+// SILENCIAR LOGS DE BAILEYS
+const originalConsoleLog = console.log;
+console.log = function(...args) {
+    const message = args.join(' ');
+    // Ignorar logs de Baileys sobre sesiones
+    if (message.includes('Closing session') || 
+        message.includes('SessionEntry') ||
+        message.includes('ephemeralKeyPair')) {
+        return;
+    }
+    originalConsoleLog.apply(console, args);
+};
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const upload = multer();

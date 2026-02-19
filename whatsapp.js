@@ -41,8 +41,11 @@ class WhatsAppConnection {
             creds: state.creds,
             keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' })),
         },
-        logger: pino({ level: 'silent' }),
-        browser: ['API WhatsApp', 'Chrome', '1.0.0']
+        logger: pino({ level: 'fatal' }),
+        browser: ['API WhatsApp', 'Chrome', '1.0.0'],
+        shouldIgnoreJid: () => false,
+    msgRetryCounterMap: {},
+    generateHighQualityLinkPreview: false
     });
 
     this.sock.ev.on('creds.update', saveCreds);
