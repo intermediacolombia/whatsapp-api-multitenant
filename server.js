@@ -965,6 +965,355 @@ app.get('/api/admin/messages', authenticateAdmin, async (req, res) => {
     }
 });
 
+/**
+ * POST /api/verify - Verificar si un número existe en WhatsApp
+ */
+app.post('/api/verify', authenticateAPI, async (req, res) => {
+    try {
+        const { phone, phonenumber } = req.body;
+        const phoneNumber = phone || phonenumber;
+        const clientId = req.client.client_id;
+        
+        if (!phoneNumber) {
+            return res.status(400).json({ success: false, error: 'Número requerido' });
+        }
+        
+        const wa = await ensureInitialized(clientId);
+        if (!wa.getStatus()) {
+            return res.status(503).json({ success: false, error: 'WhatsApp no conectado' });
+        }
+        
+        const cleanNumber = phoneNumber.replace(/\D/g, '');
+        const jid = `${cleanNumber}@s.whatsapp.net`;
+        
+        const [result] = await wa.sock.onWhatsApp(jid);
+        
+        res.json({
+            success: true,
+            exists: result?.exists || false,
+            jid: result?.jid || null,
+            phone: phoneNumber
+        });
+        
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * POST /api/send-bulk - Enviar mensaje a múltiples números
+ */
+app.post('/api/send-bulk', authenticateAPI, async (req, res) => {
+    try {
+        const { phones, text, message, url, filename, caption, delay } = req.body;
+        const clientId = req.client.client_id;
+        
+        const phoneList = Array.isArray(phones) ? phones : phones.split(',').map(p => p.trim());
+        const messageText = text || message;
+        const delayMs = delay || 2000; // Delay entre mensajes (2 seg default)
+        
+        if (!phoneList.length || !messageText) {
+            return res.status(400).json({ success: false, error: 'phones y message requeridos' });
+        }
+        
+        const wa = await ensureInitialized(clientId);
+        if (!wa.getStatus()) {
+            return res.status(503).json({ success: false, error: 'WhatsApp no conectado' });
+        }
+        
+        const results = [];
+        
+        for (const phone of phoneList) {
+            try {
+                let result;
+                if (url) {
+                    const fileNameToUse = filename || url.split('/').pop().split('?')[0] || 'documento.pdf';
+                    result = await wa.sendFile(phone, url, fileNameToUse, caption || messageText);
+                } else {
+                    result = await wa.sendMessage(phone, messageText);
+                }
+                
+                results.push({ phone, success: true, messageId: result.messageId });
+                
+                // Log individual
+                await logMessage(clientId, {
+                    phoneNumber: phone,
+                    messageType: url ? 'file' : 'text',
+                    messageText: messageText,
+                    fileUrl: url || null,
+                    caption: caption || null,
+                    status: 'sent',
+                    messageId: result.messageId,
+                    timestampSent: result.timestamp,
+                    responseTime: 0
+                });
+                
+                // Delay para evitar ban
+                if (phoneList.indexOf(phone) < phoneList.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, delayMs));
+                }
+                
+            } catch (error) {
+                results.push({ phone, success: false, error: error.message });
+                
+                await logMessage(clientId, {
+                    phoneNumber: phone,
+                    messageType: url ? 'file' : 'text',
+                    messageText: messageText,
+                    fileUrl: url || null,
+                    status: 'failed',
+                    errorMessage: error.message,
+                    responseTime: 0
+                });
+            }
+        }
+        
+        const successful = results.filter(r => r.success).length;
+        const failed = results.filter(r => !r.success).length;
+        
+        res.json({
+            success: true,
+            total: phoneList.length,
+            sent: successful,
+            failed: failed,
+            results: results
+        });
+        
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * GET /api/profile-picture - Obtener foto de perfil de un número
+ */
+app.get('/api/profile-picture', authenticateAPI, async (req, res) => {
+    try {
+        const { phone, phonenumber } = req.query;
+        const phoneNumber = phone || phonenumber;
+        const clientId = req.client.client_id;
+        
+        if (!phoneNumber) {
+            return res.status(400).json({ success: false, error: 'Número requerido' });
+        }
+        
+        const wa = await ensureInitialized(clientId);
+        if (!wa.getStatus()) {
+            return res.status(503).json({ success: false, error: 'WhatsApp no conectado' });
+        }
+        
+        const cleanNumber = phoneNumber.replace(/\D/g, '');
+        const jid = `${cleanNumber}@s.whatsapp.net`;
+        
+        const profilePicUrl = await wa.sock.profilePictureUrl(jid, 'image');
+        
+        res.json({
+            success: true,
+            phone: phoneNumber,
+            profilePicture: profilePicUrl || null
+        });
+        
+    } catch (error) {
+        res.json({
+            success: true,
+            phone: phoneNumber,
+            profilePicture: null,
+            message: 'No profile picture available'
+        });
+    }
+});
+
+/**
+ * GET /api/stats - Estadísticas de mensajes del cliente
+ */
+app.get('/api/stats', authenticateAPI, async (req, res) => {
+    try {
+        const clientId = req.client.client_id;
+        const days = parseInt(req.query.days) || 30;
+        
+        const dateFrom = new Date();
+        dateFrom.setDate(dateFrom.getDate() - days);
+        
+        // Total mensajes
+        const [totalResult] = await pool.execute(
+            'SELECT COUNT(*) as total FROM message_logs WHERE client_id = ? AND created_at >= ?',
+            [clientId, dateFrom]
+        );
+        
+        // Mensajes enviados
+        const [sentResult] = await pool.execute(
+            'SELECT COUNT(*) as sent FROM message_logs WHERE client_id = ? AND status = "sent" AND created_at >= ?',
+            [clientId, dateFrom]
+        );
+        
+        // Mensajes fallidos
+        const [failedResult] = await pool.execute(
+            'SELECT COUNT(*) as failed FROM message_logs WHERE client_id = ? AND status = "failed" AND created_at >= ?',
+            [clientId, dateFrom]
+        );
+        
+        // Tiempo promedio de respuesta
+        const [avgTimeResult] = await pool.execute(
+            'SELECT AVG(response_time) as avg_time FROM message_logs WHERE client_id = ? AND status = "sent" AND created_at >= ?',
+            [clientId, dateFrom]
+        );
+        
+        // Mensajes por día (últimos 7 días)
+        const [dailyStats] = await pool.execute(`
+            SELECT DATE(created_at) as date, COUNT(*) as count
+            FROM message_logs 
+            WHERE client_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            GROUP BY DATE(created_at)
+            ORDER BY date DESC
+        `, [clientId]);
+        
+        res.json({
+            success: true,
+            period_days: days,
+            total: totalResult[0].total,
+            sent: sentResult[0].sent,
+            failed: failedResult[0].failed,
+            success_rate: totalResult[0].total > 0 ? ((sentResult[0].sent / totalResult[0].total) * 100).toFixed(2) + '%' : '0%',
+            avg_response_time_ms: Math.round(avgTimeResult[0].avg_time || 0),
+            daily_stats: dailyStats
+        });
+        
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * POST /api/webhook - Configurar webhook para mensajes recibidos
+ */
+app.post('/api/webhook', authenticateAPI, async (req, res) => {
+    try {
+        const { url, events } = req.body;
+        const clientId = req.client.client_id;
+        
+        if (!url) {
+            return res.status(400).json({ success: false, error: 'URL requerida' });
+        }
+        
+        // Guardar webhook en BD (necesitas crear tabla webhooks)
+        await pool.execute(`
+            INSERT INTO webhooks (client_id, url, events, status)
+            VALUES (?, ?, ?, 'active')
+            ON DUPLICATE KEY UPDATE url = ?, events = ?
+        `, [clientId, url, JSON.stringify(events || ['message']), url, JSON.stringify(events || ['message'])]);
+        
+        res.json({
+            success: true,
+            message: 'Webhook configurado',
+            url: url,
+            events: events || ['message']
+        });
+        
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * GET /api/health - Estado de salud de la API
+ */
+app.get('/api/health', async (req, res) => {
+    try {
+        await pool.execute('SELECT 1');
+        
+        const totalInstances = Object.keys(whatsappInstances).length;
+        const connectedInstances = Object.values(whatsappInstances)
+            .filter(wa => wa.instance && wa.instance.getStatus()).length;
+        
+        res.json({
+            success: true,
+            status: 'healthy',
+            timestamp: new Date().toISOString(),
+            database: 'connected',
+            whatsapp_instances: {
+                total: totalInstances,
+                connected: connectedInstances,
+                disconnected: totalInstances - connectedInstances
+            },
+            uptime: process.uptime()
+        });
+    } catch (error) {
+        res.status(503).json({
+            success: false,
+            status: 'unhealthy',
+            error: error.message
+        });
+    }
+});
+
+/**
+ * GET /api/groups - Listar grupos del cliente
+ */
+app.get('/api/groups', authenticateAPI, async (req, res) => {
+    try {
+        const clientId = req.client.client_id;
+        
+        const wa = await ensureInitialized(clientId);
+        if (!wa.getStatus()) {
+            return res.status(503).json({ success: false, error: 'WhatsApp no conectado' });
+        }
+        
+        const groups = await wa.sock.groupFetchAllParticipating();
+        const groupList = Object.values(groups).map(group => ({
+            id: group.id,
+            name: group.subject,
+            participants: group.participants.length,
+            creation: group.creation,
+            owner: group.owner
+        }));
+        
+        res.json({
+            success: true,
+            total: groupList.length,
+            groups: groupList
+        });
+        
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+
+/**
+ * POST /api/send-group - Enviar mensaje a un grupo
+ */
+app.post('/api/send-group', authenticateAPI, async (req, res) => {
+    try {
+        const { group_id, text, message } = req.body;
+        const clientId = req.client.client_id;
+        const messageText = text || message;
+        
+        if (!group_id || !messageText) {
+            return res.status(400).json({ success: false, error: 'group_id y message requeridos' });
+        }
+        
+        const wa = await ensureInitialized(clientId);
+        if (!wa.getStatus()) {
+            return res.status(503).json({ success: false, error: 'WhatsApp no conectado' });
+        }
+        
+        const result = await wa.sock.sendMessage(group_id, { text: messageText });
+        
+        res.json({
+            success: true,
+            message: 'Mensaje enviado al grupo',
+            messageId: result.key.id,
+            group_id: group_id
+        });
+        
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+
+
+
 
 // ========== ERROR 404 ==========
 
