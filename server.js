@@ -1312,6 +1312,41 @@ app.post('/api/send-group', authenticateAPI, async (req, res) => {
 });
 
 
+/**
+ * GET /api/status - Verificar estado de conexión de WhatsApp
+ */
+app.get('/api/status', authenticateAPI, async (req, res) => {
+    try {
+        const clientId = req.client.client_id;
+        const wa = whatsappInstances[clientId];
+        
+        if (!wa || !wa.instance) {
+            return res.json({
+                success: true,
+                connected: false,
+                phone: null,
+                message: 'WhatsApp no inicializado'
+            });
+        }
+        
+        const isConnected = wa.instance.getStatus();
+        const phoneNumber = wa.instance.getPhoneNumber();
+        
+        res.json({
+            success: true,
+            connected: isConnected,
+            phone: phoneNumber,
+            client_id: clientId
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 
 
 
