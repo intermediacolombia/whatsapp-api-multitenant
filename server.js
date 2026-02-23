@@ -223,17 +223,30 @@ async function sendWebhook(clientId, eventData) {
         }
         
         const webhook = webhooks[0];
-        const events = JSON.parse(webhook.events || '["message"]');
         
-        // Verificar si el evento está en la lista de eventos permitidos
+        // ✅ FIX: Parsear events de forma segura
+        let events = ['message'];
+        try {
+            if (webhook.events && typeof webhook.events === 'string') {
+                events = JSON.parse(webhook.events);
+            } else if (Array.isArray(webhook.events)) {
+                events = webhook.events;
+            }
+        } catch (e) {
+            console.warn(`⚠️ [${clientId}] Error parseando events, usando default:`, e.message);
+        }
+        
+        // Verificar si el evento está en la lista
         if (!events.includes(eventData.event)) {
+            console.log(`ℹ️ [${clientId}] Evento ${eventData.event} no está en la lista permitida`);
             return;
         }
         
         console.log(`🔔 [${clientId}] Enviando webhook a: ${webhook.url}`);
+        console.log(`📦 [${clientId}] Datos:`, JSON.stringify(eventData, null, 2));
         
         const axios = require('axios');
-        await axios.post(webhook.url, eventData, {
+        const response = await axios.post(webhook.url, eventData, {
             timeout: 10000,
             headers: {
                 'Content-Type': 'application/json',
@@ -241,10 +254,13 @@ async function sendWebhook(clientId, eventData) {
             }
         });
         
-        console.log(`✅ [${clientId}] Webhook enviado exitosamente`);
+        console.log(`✅ [${clientId}] Webhook enviado exitosamente. Status: ${response.status}`);
         
     } catch (error) {
         console.error(`❌ [${clientId}] Error enviando webhook:`, error.message);
+        if (error.response) {
+            console.error(`📄 [${clientId}] Respuesta del servidor:`, error.response.data);
+        }
     }
 }
 
