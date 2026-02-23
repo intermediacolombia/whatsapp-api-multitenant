@@ -111,48 +111,28 @@ class WhatsAppConnection {
 
   //Listener de mensajes recibidos
         // Listener de mensajes recibidos
+        // Listener de mensajes recibidos
         this.sock.ev.on('messages.upsert', async ({ messages }) => {
             for (const msg of messages) {
-                // Ignorar mensajes propios
                 if (msg.key.fromMe) continue;
-                
-                // Ignorar mensajes de broadcast
                 if (msg.key.remoteJid === 'status@broadcast') continue;
                 
-                console.log(`[${this.clientId}] ========== MENSAJE COMPLETO ==========`);
+                // ✅ MOSTRAR TODO EL MENSAJE
+                console.log(`\n========== MENSAJE COMPLETO [${this.clientId}] ==========`);
                 console.log(JSON.stringify(msg, null, 2));
-                console.log(`[${this.clientId}] =====================================`);
+                console.log('========== FIN MENSAJE ==========\n');
                 
                 const messageType = msg.message ? Object.keys(msg.message)[0] : null;
                 
-                // Solo procesar mensajes de texto por ahora
                 if (messageType === 'conversation' || messageType === 'extendedTextMessage') {
                     const messageText = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
                     const rawJid = msg.key.remoteJid;
-                    
-                    // Extraer número del JID
                     let phoneNumber = rawJid.split('@')[0].replace(/\D/g, '');
                     
-                    console.log(`[${this.clientId}] JID Original: ${rawJid}`);
-                    console.log(`[${this.clientId}] Numero extraido: ${phoneNumber}`);
-                    console.log(`[${this.clientId}] Mensaje: ${messageText}`);
-                    
-                    // Verificar si hay información del participante (en grupos)
-                    if (msg.key.participant) {
-                        const participantNumber = msg.key.participant.split('@')[0].replace(/\D/g, '');
-                        console.log(`[${this.clientId}] Participante: ${participantNumber}`);
-                        phoneNumber = participantNumber;
-                    }
-                    
-                    // Verificar pushName (nombre del contacto)
-                    if (msg.pushName) {
-                        console.log(`[${this.clientId}] Nombre: ${msg.pushName}`);
-                    }
-                    
-                    // Disparar webhook
-                    if (this.onMessageReceived && phoneNumber.length >= 10) {
+                    if (this.onMessageReceived) {
                         this.onMessageReceived({
                             from: phoneNumber,
+                            fromJid: rawJid,
                             message: messageText,
                             timestamp: new Date().toISOString(),
                             messageId: msg.key.id,
