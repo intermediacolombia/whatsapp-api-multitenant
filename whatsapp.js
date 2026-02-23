@@ -108,7 +108,38 @@ class WhatsAppConnection {
             }
         }
     });
-}
+
+  //Listener de mensajes recibidos
+        this.sock.ev.on('messages.upsert', async ({ messages }) => {
+            for (const msg of messages) {
+                // Ignorar mensajes propios
+                if (msg.key.fromMe) continue;
+                
+                // Ignorar mensajes de broadcast
+                if (msg.key.remoteJid === 'status@broadcast') continue;
+                
+                const messageType = msg.message ? Object.keys(msg.message)[0] : null;
+                
+                // Solo procesar mensajes de texto por ahora
+                if (messageType === 'conversation' || messageType === 'extendedTextMessage') {
+                    const messageText = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
+                    const from = msg.key.remoteJid.replace('@s.whatsapp.net', '');
+                    
+                    console.log(`📩 [${this.clientId}] Mensaje recibido de ${from}: ${messageText}`);
+                    
+                    // Disparar webhook
+                    if (this.onMessageReceived) {
+                        this.onMessageReceived({
+                            from: from,
+                            message: messageText,
+                            timestamp: new Date().toISOString(),
+                            messageId: msg.key.id
+                        });
+                    }
+                }
+            }
+        });
+    }
 
    
 
@@ -179,6 +210,32 @@ class WhatsAppConnection {
 }
 
 
+async sendMessage(phone, message) {
+        if (!this.isConnected) throw new Error('WhatsApp no conectado');
+        
+        const jid = `${phone.replace(/[^0-9]/g, '')}@s.whatsapp.net`;
+        const result = await this.sock.sendMessage(jid, { text: message });
+        
+        return { 
+            success: true, 
+            messageId: result.key.id,
+            timestamp: result.messageTimestamp ? Number(result.messageTimestamp) : Date.now()
+        };
+    }
+
+    getQRImage() { return this.qrCodeImage; }
+    getStatus() { return this.isConnected; }
+    getPhoneNumber() { return this.phoneNumber; }
+
+    async logout() {
+        if (this.sock) {
+            await this.sock.logout();
+            if (fs.existsSync(this.authFolder)) {
+                fs.rmSync(this.authFolder, { recursive: true, force: true });
+            }
+            this.isConnected = false;
+        }
+    }
 async sendMessage(phone, message) {
         if (!this.isConnected) throw new Error('WhatsApp no conectado');
         

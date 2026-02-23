@@ -206,7 +206,100 @@ async function getWhatsAppInstance(clientId) {
     return whatsappInstances[clientId];
 }
 
+
+/**
+ * Enviar webhook a cliente
+ */
+async function sendWebhook(clientId, eventData) {
+    try {
+        const [webhooks] = await pool.execute(
+            'SELECT * FROM webhooks WHERE client_id = ? AND status = "active"',
+            [clientId]
+        );
+        
+        if (webhooks.length === 0) {
+            console.log(`ℹ️ [${clientId}] No hay webhook configurado`);
+            return;
+        }
+        
+        const webhook = webhooks[0];
+        const events = JSON.parse(webhook.events || '["message"]');
+        
+        // Verificar si el evento está en la lista de eventos permitidos
+        if (!events.includes(eventData.event)) {
+            return;
+        }
+        
+        console.log(`🔔 [${clientId}] Enviando webhook a: ${webhook.url}`);
+        
+        const axios = require('axios');
+        await axios.post(webhook.url, eventData, {
+            timeout: 10000,
+            headers: {
+                'Content-Type': 'application/json',
+                'User-Agent': 'WhatsApp-API-Webhook/1.0'
+            }
+        });
+        
+        console.log(`✅ [${clientId}] Webhook enviado exitosamente`);
+        
+    } catch (error) {
+        console.error(`❌ [${clientId}] Error enviando webhook:`, error.message);
+    }
+}
+
+
 async function ensureInitialized(clientId) {
+    if (whatsappInstances[clientId]) {
+        return whatsappInstances[clientId].instance;
+    }
+
+    const wa = new WhatsAppConnection(clientId);
+    
+    // ✨ NUEVO: Callback cuando se conecta
+    wa.onConnected = async (phoneNumber) => {
+        console.log(`✅ [${clientId}] WhatsApp conectado: ${phoneNumber}`);
+        await updateWhatsAppStatus(clientId, true, phoneNumber);
+    };
+    
+    // ✨ NUEVO: Callback cuando se desconecta
+    wa.onDisconnected = async () => {
+        console.log(`❌ [${clientId}] WhatsApp desconectado`);
+        await updateWhatsAppStatus(clientId, false, null);
+    };
+    
+    // ✨ NUEVO: Callback cuando se recibe un mensaje
+    wa.onMessageReceived = async (messageData) => {
+        console.log(`📩 [${clientId}] Mensaje recibido:`, messageData);
+        
+        // Enviar webhook
+        await sendWebhook(clientId, {
+            event: 'message',
+            from: messageData.from,
+            message: messageData.message,
+            timestamp: messageData.timestamp,
+            messageId: messageData.messageId,
+            client_id: clientId
+        });
+    };
+    
+    // ✨ NUEVO: Callback cuando el usuario cierra sesión
+    wa.onLogout = () => {
+        console.log(`🗑️ [${clientId}] Usuario cerró sesión`);
+        delete whatsappInstances[clientId];
+    };
+
+    await wa.initialize();
+    
+    whatsappInstances[clientId] = {
+        instance: wa,
+        lastActivity: Date.now()
+    };
+
+    return wa;
+}
+
+/*async function ensureInitialized(clientId) {
     const waData = await getWhatsAppInstance(clientId);
     
     if (!waData.isInitialized) {
@@ -233,7 +326,7 @@ async function ensureInitialized(clientId) {
     }
     
     return waData.instance;
-}
+}*/
 
 // ========== MIDDLEWARE DE AUTENTICACIÓN ==========
 
