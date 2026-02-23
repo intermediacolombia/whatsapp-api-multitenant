@@ -246,18 +246,19 @@ async function sendWebhook(clientId, eventData) {
             return;
         }
         
-        // Crear payload limpio
+         console.log(`[${clientId}] Enviando webhook a: ${webhook.url}`);
+        
+        // ✅ CREAR PAYLOAD LIMPIO - PRESERVAR pushName
         const payload = {
-            event: eventData.event,
-            from: eventData.from,
-            message: eventData.message,
-            timestamp: eventData.timestamp,
-            messageId: eventData.messageId,
-            pushName: eventData.pushName || null,  // ✅ Agregar pushName
+            event: eventData.event || 'message',
+            from: eventData.from || '',
+            message: eventData.message || '',
+            timestamp: eventData.timestamp || new Date().toISOString(),
+            messageId: eventData.messageId || '',
+            pushName: eventData.pushName || null,  // ✅ Mantener tal cual viene
             client_id: clientId
         };
         
-        console.log(`[${clientId}] Enviando webhook a: ${webhook.url}`);
         console.log(`[${clientId}] Payload JSON:`, JSON.stringify(payload));
         console.log(`[${clientId}] Payload Length:`, JSON.stringify(payload).length);
         
@@ -311,13 +312,14 @@ async function ensureInitialized(clientId) {
     wa.onMessageReceived = async (messageData) => {
         console.log(`📩 [${clientId}] Mensaje recibido:`, messageData);
         
-        // Enviar webhook
+         // Enviar webhook
         await sendWebhook(clientId, {
             event: 'message',
             from: messageData.from,
             message: messageData.message,
             timestamp: messageData.timestamp,
             messageId: messageData.messageId,
+            pushName: messageData.pushName,
             client_id: clientId
         });
     };
