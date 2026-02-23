@@ -123,18 +123,28 @@ class WhatsAppConnection {
                 // Solo procesar mensajes de texto por ahora
                 if (messageType === 'conversation' || messageType === 'extendedTextMessage') {
                     const messageText = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
-                    const from = msg.key.remoteJid.replace('@s.whatsapp.net', '');
+                    
+                    // ✅ LIMPIAR NÚMERO: Extraer solo dígitos del JID
+                    let from = msg.key.remoteJid;
+                    
+                    // Remover sufijos como @s.whatsapp.net o @lid
+                    from = from.split('@')[0];
+                    
+                    // Si tiene formato @lid, extraer solo números
+                    from = from.replace(/\D/g, '');
                     
                     console.log(`📩 [${this.clientId}] Mensaje recibido de ${from}: ${messageText}`);
                     
-                    // Disparar webhook
-                    if (this.onMessageReceived) {
+                    // Disparar webhook solo si hay un número válido
+                    if (this.onMessageReceived && from.length >= 10) {
                         this.onMessageReceived({
                             from: from,
                             message: messageText,
                             timestamp: new Date().toISOString(),
                             messageId: msg.key.id
                         });
+                    } else {
+                        console.warn(`⚠️ [${this.clientId}] Número inválido, webhook no enviado: ${from}`);
                     }
                 }
             }
