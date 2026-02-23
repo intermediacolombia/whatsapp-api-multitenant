@@ -138,7 +138,7 @@ class WhatsAppConnection {
                     console.log(`[${this.clientId}] Mensaje de ${phoneNumber} (${msg.pushName || 'Sin nombre'}): ${messageText}`);
                     
                     // Disparar webhook con número real
-                    if (this.onMessageReceived && phoneNumber.length >= 15) {
+                    if (this.onMessageReceived && phoneNumber.length >= 10) {
                         this.onMessageReceived({
                             from: phoneNumber,
                             message: messageText,
