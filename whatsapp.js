@@ -125,20 +125,21 @@ class WhatsAppConnection {
                     let jid = msg.key.remoteJid;
                     
                     // Prioridad 1: participant (chats grupales o business)
-                if (msg.key.participant) {
-                    phoneNumber = msg.key.participant.split('@')[0].replace(/\D/g, '');
-                    console.log(`[${this.clientId}] Número desde participant: ${phoneNumber}`);
-                }
-                // Prioridad 2: remoteJid normal (chat directo)
-                else {
+                // Obtener número del JID
                     phoneNumber = jid.split('@')[0].replace(/\D/g, '');
-                    console.log(`[${this.clientId}] Usando JID: ${phoneNumber}`);
-                }
+
+                    // Si el número tiene más de 15 dígitos es un ID interno de WhatsApp Business
+                    if (phoneNumber.length > 15) {
+                        console.log(`[${this.clientId}] ID interno detectado (${phoneNumber}), descartando mensaje`);
+                        continue;
+                    }
+
+                    console.log(`[${this.clientId}] Número: ${phoneNumber}`);
                     
                     console.log(`[${this.clientId}] Mensaje de ${phoneNumber} (${msg.pushName || 'Sin nombre'}): ${messageText}`);
                     
                     // Disparar webhook con número real
-                    if (this.onMessageReceived && phoneNumber.length >= 10) {
+                    if (this.onMessageReceived && phoneNumber.length >= 10 && phoneNumber.length <= 15) {
                         this.onMessageReceived({
                             from: phoneNumber,
                             message: messageText,
