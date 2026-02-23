@@ -88,6 +88,14 @@ async function getClientByEmail(email) {
     return rows[0] || null;
 }
 
+async function getClientByClientId(clientId) {
+    const [rows] = await pool.execute(
+        'SELECT * FROM clients WHERE client_id = ?',
+        [clientId]
+    );
+    return rows[0] || null;
+}
+
 async function getClientBySession(sessionToken) {
     const [rows] = await pool.execute(`
         SELECT c.* FROM clients c
@@ -437,7 +445,13 @@ app.post('/api/admin/clients', authenticateAdmin, async (req, res) => {
         }
         
         const hashedPassword = await bcrypt.hash(password, 10);
-        const apiKey = crypto.randomBytes(32).toString('hex');
+        //const apiKey = crypto.randomBytes(32).toString('hex');
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let apiKey = '';
+        const randomBytes = crypto.randomBytes(36);
+        for (let i = 0; i < 36; i++) {
+            apiKey += chars[randomBytes[i] % chars.length];
+        }
         
         await pool.execute(`
             INSERT INTO clients (client_id, name, email, password, api_key)
@@ -522,16 +536,16 @@ app.delete('/api/admin/clients/:clientId', authenticateAdmin, async (req, res) =
 
 app.post('/api/login', async (req, res) => {
     try {
-        const { email, password } = req.body;
-        
-        if (!email || !password) {
+        const { user, password } = req.body;
+
+        if (!user || !password) {
             return res.status(400).json({
                 success: false,
-                error: 'Email y contraseña son requeridos'
+                error: 'Usuario y contraseña son requeridos'
             });
         }
-        
-        const client = await getClientByEmail(email);
+
+        const client = await getClientByClientId(user);
         
         if (!client) {
             return res.status(401).json({
@@ -1346,6 +1360,8 @@ app.get('/api/status', authenticateAPI, async (req, res) => {
         });
     }
 });
+
+
 
 
 

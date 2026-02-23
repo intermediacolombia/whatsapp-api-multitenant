@@ -312,19 +312,19 @@
         <form id="login-form" onsubmit="handleLogin(event)">
             <div class="form-group">
                 <label>
-                    <i class="fa-solid fa-envelope"></i>
-                    Email
-                </label>
-                <div class="input-wrapper">
-                    <input 
-                        type="email" 
-                        id="email" 
-                        placeholder="correo@ejemplo.com"
-                        required
-                        autocomplete="email"
-                    >
-                    <i class="fa-regular fa-envelope input-icon"></i>
-                </div>
+                <i class="fa-solid fa-user"></i>
+                Usuario
+            </label>
+            <div class="input-wrapper">
+                <input 
+                    type="text" 
+                    id="user" 
+                    placeholder="Ingresa tu usuario"
+                    required
+                    autocomplete="username"
+                >
+                <i class="fa-regular fa-user input-icon"></i>
+            </div>
             </div>
             
             <div class="form-group">
@@ -362,7 +362,7 @@
         async function handleLogin(event) {
             event.preventDefault();
             
-            const email = document.getElementById('email').value;
+            const user = document.getElementById('user').value;
             const password = document.getElementById('password').value;
             const btn = document.getElementById('login-btn');
             const btnText = document.getElementById('btn-text');
@@ -379,7 +379,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ user, password })
                 });
                 
                 const data = await response.json();
