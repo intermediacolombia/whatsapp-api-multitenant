@@ -124,16 +124,16 @@ class WhatsAppConnection {
                     let phoneNumber = null;
                     let jid = msg.key.remoteJid;
                     
-                    // Prioridad 1: remoteJidAlt (número real)
-                    if (msg.key.remoteJidAlt) {
-                        phoneNumber = msg.key.remoteJidAlt.split('@')[0].replace(/\D/g, '');
-                        console.log(`[${this.clientId}] Número real encontrado: ${phoneNumber}`);
-                    } 
-                    // Prioridad 2: remoteJid normal
-                    else {
-                        phoneNumber = jid.split('@')[0].replace(/\D/g, '');
-                        console.log(`[${this.clientId}] Usando JID: ${phoneNumber}`);
-                    }
+                    // Prioridad 1: participant (chats grupales o business)
+                if (msg.key.participant) {
+                    phoneNumber = msg.key.participant.split('@')[0].replace(/\D/g, '');
+                    console.log(`[${this.clientId}] Número desde participant: ${phoneNumber}`);
+                }
+                // Prioridad 2: remoteJid normal (chat directo)
+                else {
+                    phoneNumber = jid.split('@')[0].replace(/\D/g, '');
+                    console.log(`[${this.clientId}] Usando JID: ${phoneNumber}`);
+                }
                     
                     console.log(`[${this.clientId}] Mensaje de ${phoneNumber} (${msg.pushName || 'Sin nombre'}): ${messageText}`);
                     
