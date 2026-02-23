@@ -250,9 +250,11 @@ async function sendWebhook(clientId, eventData) {
         const payload = {
             event: eventData.event,
             from: eventData.from,
+            fromJid: eventData.fromJid,  // Agregar JID
             message: eventData.message,
             timestamp: eventData.timestamp,
             messageId: eventData.messageId,
+            pushName: eventData.pushName || null,
             client_id: clientId
         };
         
