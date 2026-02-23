@@ -1200,29 +1200,54 @@ app.get('/api/stats', authenticateAPI, async (req, res) => {
 /**
  * POST /api/webhook - Configurar webhook para mensajes recibidos
  */
-app.post('/api/webhook', authenticateAPI, async (req, res) => {
+/**
+ * GET /api/webhook - Obtener webhook actual
+ */
+app.get('/api/webhook', authenticateSession, async (req, res) => {
     try {
-        const { url, events } = req.body;
         const clientId = req.client.client_id;
-        
+        const [rows] = await pool.execute(
+            'SELECT * FROM webhooks WHERE client_id = ?',
+            [clientId]
+        );
+        res.json({ success: true, webhook: rows[0] || null });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * POST /api/webhook - Crear o actualizar webhook
+ */
+app.post('/api/webhook', authenticateSession, async (req, res) => {
+    try {
+        const { url } = req.body;
+        const clientId = req.client.client_id;
+
         if (!url) {
             return res.status(400).json({ success: false, error: 'URL requerida' });
         }
-        
-        // Guardar webhook en BD (necesitas crear tabla webhooks)
+
         await pool.execute(`
             INSERT INTO webhooks (client_id, url, events, status)
-            VALUES (?, ?, ?, 'active')
-            ON DUPLICATE KEY UPDATE url = ?, events = ?
-        `, [clientId, url, JSON.stringify(events || ['message']), url, JSON.stringify(events || ['message'])]);
-        
-        res.json({
-            success: true,
-            message: 'Webhook configurado',
-            url: url,
-            events: events || ['message']
-        });
-        
+            VALUES (?, ?, 'message', 'active')
+            ON DUPLICATE KEY UPDATE url = ?, status = 'active'
+        `, [clientId, url, url]);
+
+        res.json({ success: true, message: 'Webhook guardado', url });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * DELETE /api/webhook - Eliminar webhook
+ */
+app.delete('/api/webhook', authenticateSession, async (req, res) => {
+    try {
+        const clientId = req.client.client_id;
+        await pool.execute('DELETE FROM webhooks WHERE client_id = ?', [clientId]);
+        res.json({ success: true, message: 'Webhook eliminado' });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }

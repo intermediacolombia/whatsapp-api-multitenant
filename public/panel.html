@@ -886,6 +886,11 @@
                 <i class="fa-solid fa-book"></i>
                 <span>Documentación</span>
             </a>
+
+            <a href="#" class="nav-item" onclick="showSection('webhook')" id="nav-webhook">
+                <i class="fa-solid fa-webhook"></i>
+                <span>Webhook</span>
+            </a>
         </nav>
         
         <div class="sidebar-footer">
@@ -1195,6 +1200,48 @@ curl_close($ch);
                     </div>
                 </div>
             </div>
+            <!-- Webhook Section -->
+            <div id="section-webhook" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fa-solid fa-webhook"></i>
+                            <h3>Webhook</h3>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p style="color: #718096; margin-bottom: 24px; font-size: 14px;">
+                            <i class="fa-solid fa-circle-info" style="color: #667eea;"></i>
+                            Un webhook es una URL de tu aplicación donde recibirás automáticamente los mensajes entrantes de WhatsApp en tiempo real.
+                        </p>
+
+                        <div id="webhook-current" style="display:none; background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-size: 12px; color: #718096; margin-bottom: 4px;">URL activa</div>
+                                    <div id="webhook-url-display" style="font-weight: 600; color: #276749; word-break: break-all;"></div>
+                                </div>
+                                <button onclick="deleteWebhook()" style="background: #fed7d7; color: #c53030; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;">
+                                    <i class="fa-solid fa-trash"></i> Eliminar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="font-weight: 600; font-size: 14px; color: #2d3748; margin-bottom: 8px; display: block;">URL del Webhook</label>
+                            <input type="url" id="webhook-url-input" placeholder="https://tuapp.com/webhook" 
+                                style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none;">
+                        </div>
+
+                        <button onclick="saveWebhook()" class="btn" style="margin-top: 8px;">
+                            <i class="fa-solid fa-floppy-disk"></i> Guardar Webhook
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+
         </div>
     </div>
     
@@ -1714,11 +1761,13 @@ curl_close($ch);
             document.getElementById('section-send').style.display = 'none';
             document.getElementById('section-history').style.display = 'none';
             document.getElementById('section-docs').style.display = 'none';
+            document.getElementById('section-webhook').style.display = 'none';
             
             document.getElementById('nav-dashboard').classList.remove('active');
             document.getElementById('nav-send').classList.remove('active');
             document.getElementById('nav-history').classList.remove('active');
             document.getElementById('nav-docs').classList.remove('active');
+            document.getElementById('nav-webhook').classList.remove('active');
             
             if (section === 'dashboard') {
                 document.getElementById('section-dashboard').style.display = 'block';
@@ -1744,8 +1793,75 @@ curl_close($ch);
                 document.getElementById('nav-docs').classList.add('active');
                 document.getElementById('page-title').textContent = 'Documentación';
                 document.getElementById('page-subtitle').textContent = 'Aprende a integrar la API';
+            } else if (section === 'webhook') {
+                document.getElementById('section-webhook').style.display = 'block';
+                document.getElementById('nav-webhook').classList.add('active');
+                document.getElementById('page-title').textContent = 'Webhook';
+                document.getElementById('page-subtitle').textContent = 'Configura tu URL para recibir mensajes en tiempo real';
+                loadWebhook();
             }
         }
+
+
+        async function loadWebhook() {
+    try {
+        const res = await fetch('/api/webhook', {
+            headers: { 'X-Session-Token': localStorage.getItem('session_token') }
+        });
+        const data = await res.json();
+        if (data.webhook) {
+            document.getElementById('webhook-current').style.display = 'block';
+            document.getElementById('webhook-url-display').textContent = data.webhook.url;
+            document.getElementById('webhook-url-input').value = data.webhook.url;
+        } else {
+            document.getElementById('webhook-current').style.display = 'none';
+            document.getElementById('webhook-url-input').value = '';
+        }
+    } catch (e) {
+        showAlert('Error cargando webhook', 'error');
+    }
+}
+
+async function saveWebhook() {
+    const url = document.getElementById('webhook-url-input').value.trim();
+    if (!url) return showAlert('Ingresa una URL válida', 'error');
+    try {
+        const res = await fetch('/api/webhook', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Session-Token': localStorage.getItem('session_token')
+            },
+            body: JSON.stringify({ url })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showAlert('Webhook guardado correctamente', 'success');
+            loadWebhook();
+        } else {
+            showAlert(data.error, 'error');
+        }
+    } catch (e) {
+        showAlert('Error guardando webhook', 'error');
+    }
+}
+
+async function deleteWebhook() {
+    if (!confirm('¿Eliminar el webhook?')) return;
+    try {
+        const res = await fetch('/api/webhook', {
+            method: 'DELETE',
+            headers: { 'X-Session-Token': localStorage.getItem('session_token') }
+        });
+        const data = await res.json();
+        if (data.success) {
+            showAlert('Webhook eliminado', 'success');
+            loadWebhook();
+        }
+    } catch (e) {
+        showAlert('Error eliminando webhook', 'error');
+    }
+}
         
         // Copiar API Key
         function copyApiKey() {
@@ -1753,6 +1869,8 @@ curl_close($ch);
             navigator.clipboard.writeText(apiKey);
             showAlert('API Key copiada al portapapeles', 'success');
         }
+
+
         
         // Cerrar sesión
         async function logout() {
