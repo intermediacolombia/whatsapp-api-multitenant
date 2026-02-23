@@ -119,29 +119,45 @@ class WhatsAppConnection {
                 // Ignorar mensajes de broadcast
                 if (msg.key.remoteJid === 'status@broadcast') continue;
                 
+                console.log(`[${this.clientId}] ========== MENSAJE COMPLETO ==========`);
+                console.log(JSON.stringify(msg, null, 2));
+                console.log(`[${this.clientId}] =====================================`);
+                
                 const messageType = msg.message ? Object.keys(msg.message)[0] : null;
                 
                 // Solo procesar mensajes de texto por ahora
                 if (messageType === 'conversation' || messageType === 'extendedTextMessage') {
                     const messageText = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
+                    const rawJid = msg.key.remoteJid;
                     
-                    // Limpiar número
-                    let from = msg.key.remoteJid;
-                    from = from.split('@')[0];
-                    from = from.replace(/\D/g, '');
+                    // Extraer número del JID
+                    let phoneNumber = rawJid.split('@')[0].replace(/\D/g, '');
                     
-                    console.log(`[${this.clientId}] Mensaje recibido de ${from}: ${messageText}`);
+                    console.log(`[${this.clientId}] JID Original: ${rawJid}`);
+                    console.log(`[${this.clientId}] Numero extraido: ${phoneNumber}`);
+                    console.log(`[${this.clientId}] Mensaje: ${messageText}`);
                     
-                    // Disparar webhook solo si hay un número válido
-                    if (this.onMessageReceived && from.length >= 10) {
+                    // Verificar si hay información del participante (en grupos)
+                    if (msg.key.participant) {
+                        const participantNumber = msg.key.participant.split('@')[0].replace(/\D/g, '');
+                        console.log(`[${this.clientId}] Participante: ${participantNumber}`);
+                        phoneNumber = participantNumber;
+                    }
+                    
+                    // Verificar pushName (nombre del contacto)
+                    if (msg.pushName) {
+                        console.log(`[${this.clientId}] Nombre: ${msg.pushName}`);
+                    }
+                    
+                    // Disparar webhook
+                    if (this.onMessageReceived && phoneNumber.length >= 10) {
                         this.onMessageReceived({
-                            from: from,
+                            from: phoneNumber,
                             message: messageText,
                             timestamp: new Date().toISOString(),
-                            messageId: msg.key.id
+                            messageId: msg.key.id,
+                            pushName: msg.pushName || null
                         });
-                    } else {
-                        console.warn(`[${this.clientId}] Numero invalido, webhook no enviado: ${from}`);
                     }
                 }
             }
