@@ -1230,7 +1230,7 @@ app.post('/api/webhook', authenticateSession, async (req, res) => {
 
         await pool.execute(`
             INSERT INTO webhooks (client_id, url, events, status)
-            VALUES (?, ?, 'message', 'active')
+            VALUES (?, ?, '["message"]', 'active')
             ON DUPLICATE KEY UPDATE url = ?, status = 'active'
         `, [clientId, url, url]);
 
