@@ -467,7 +467,7 @@ app.post('/api/admin/clients', authenticateAdmin, async (req, res) => {
         if (error.code === 'ER_DUP_ENTRY') {
             return res.status(400).json({
                 success: false,
-                error: 'El ID o email ya existe'
+                error: 'El ID de cliente ya existe'
             });
         }
         res.status(500).json({
