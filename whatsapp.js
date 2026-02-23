@@ -109,30 +109,38 @@ class WhatsAppConnection {
         }
     });
 
-  //Listener de mensajes recibidos
-        // Listener de mensajes recibidos
-        // Listener de mensajes recibidos
+    // Listener de mensajes recibidos
         this.sock.ev.on('messages.upsert', async ({ messages }) => {
             for (const msg of messages) {
                 if (msg.key.fromMe) continue;
                 if (msg.key.remoteJid === 'status@broadcast') continue;
                 
-                // ✅ MOSTRAR TODO EL MENSAJE
-                console.log(`\n========== MENSAJE COMPLETO [${this.clientId}] ==========`);
-                console.log(JSON.stringify(msg, null, 2));
-                console.log('========== FIN MENSAJE ==========\n');
-                
                 const messageType = msg.message ? Object.keys(msg.message)[0] : null;
                 
                 if (messageType === 'conversation' || messageType === 'extendedTextMessage') {
                     const messageText = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
-                    const rawJid = msg.key.remoteJid;
-                    let phoneNumber = rawJid.split('@')[0].replace(/\D/g, '');
                     
-                    if (this.onMessageReceived) {
+                    // ✅ OBTENER NÚMERO REAL desde remoteJidAlt
+                    let phoneNumber = null;
+                    let jid = msg.key.remoteJid;
+                    
+                    // Prioridad 1: remoteJidAlt (número real)
+                    if (msg.key.remoteJidAlt) {
+                        phoneNumber = msg.key.remoteJidAlt.split('@')[0].replace(/\D/g, '');
+                        console.log(`[${this.clientId}] Número real encontrado: ${phoneNumber}`);
+                    } 
+                    // Prioridad 2: remoteJid normal
+                    else {
+                        phoneNumber = jid.split('@')[0].replace(/\D/g, '');
+                        console.log(`[${this.clientId}] Usando JID: ${phoneNumber}`);
+                    }
+                    
+                    console.log(`[${this.clientId}] Mensaje de ${phoneNumber} (${msg.pushName || 'Sin nombre'}): ${messageText}`);
+                    
+                    // Disparar webhook con número real
+                    if (this.onMessageReceived && phoneNumber.length >= 10) {
                         this.onMessageReceived({
                             from: phoneNumber,
-                            fromJid: rawJid,
                             message: messageText,
                             timestamp: new Date().toISOString(),
                             messageId: msg.key.id,
