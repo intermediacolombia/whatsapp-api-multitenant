@@ -110,6 +110,7 @@ class WhatsAppConnection {
     });
 
   //Listener de mensajes recibidos
+        // Listener de mensajes recibidos
         this.sock.ev.on('messages.upsert', async ({ messages }) => {
             for (const msg of messages) {
                 // Ignorar mensajes propios
@@ -124,16 +125,12 @@ class WhatsAppConnection {
                 if (messageType === 'conversation' || messageType === 'extendedTextMessage') {
                     const messageText = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
                     
-                    // ✅ LIMPIAR NÚMERO: Extraer solo dígitos del JID
+                    // Limpiar número
                     let from = msg.key.remoteJid;
-                    
-                    // Remover sufijos como @s.whatsapp.net o @lid
                     from = from.split('@')[0];
-                    
-                    // Si tiene formato @lid, extraer solo números
                     from = from.replace(/\D/g, '');
                     
-                    console.log(`📩 [${this.clientId}] Mensaje recibido de ${from}: ${messageText}`);
+                    console.log(`[${this.clientId}] Mensaje recibido de ${from}: ${messageText}`);
                     
                     // Disparar webhook solo si hay un número válido
                     if (this.onMessageReceived && from.length >= 10) {
@@ -144,7 +141,7 @@ class WhatsAppConnection {
                             messageId: msg.key.id
                         });
                     } else {
-                        console.warn(`⚠️ [${this.clientId}] Número inválido, webhook no enviado: ${from}`);
+                        console.warn(`[${this.clientId}] Numero invalido, webhook no enviado: ${from}`);
                     }
                 }
             }

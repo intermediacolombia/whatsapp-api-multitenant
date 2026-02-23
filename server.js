@@ -210,6 +210,9 @@ async function getWhatsAppInstance(clientId) {
 /**
  * Enviar webhook a cliente
  */
+/**
+ * Enviar webhook a cliente
+ */
 async function sendWebhook(clientId, eventData) {
     try {
         const [webhooks] = await pool.execute(
@@ -218,13 +221,13 @@ async function sendWebhook(clientId, eventData) {
         );
         
         if (webhooks.length === 0) {
-            console.log(`ℹ️ [${clientId}] No hay webhook configurado`);
+            console.log(`[${clientId}] No hay webhook configurado`);
             return;
         }
         
         const webhook = webhooks[0];
         
-        // ✅ FIX: Parsear events de forma segura
+        // Parsear events de forma segura
         let events = ['message'];
         try {
             if (webhook.events && typeof webhook.events === 'string') {
@@ -233,33 +236,45 @@ async function sendWebhook(clientId, eventData) {
                 events = webhook.events;
             }
         } catch (e) {
-            console.warn(`⚠️ [${clientId}] Error parseando events, usando default:`, e.message);
+            console.warn(`[${clientId}] Error parseando events, usando default:`, e.message);
         }
         
         // Verificar si el evento está en la lista
         if (!events.includes(eventData.event)) {
-            console.log(`ℹ️ [${clientId}] Evento ${eventData.event} no está en la lista permitida`);
+            console.log(`[${clientId}] Evento ${eventData.event} no esta en la lista permitida`);
             return;
         }
         
-        console.log(`🔔 [${clientId}] Enviando webhook a: ${webhook.url}`);
-        console.log(`📦 [${clientId}] Datos:`, JSON.stringify(eventData, null, 2));
+        console.log(`[${clientId}] Enviando webhook a: ${webhook.url}`);
+        
+        // ✅ CREAR PAYLOAD LIMPIO SIN EMOJIS
+        const cleanPayload = {
+            event: eventData.event,
+            from: eventData.from,
+            message: eventData.message,
+            timestamp: eventData.timestamp,
+            messageId: eventData.messageId,
+            client_id: clientId
+        };
+        
+        console.log(`[${clientId}] Datos a enviar:`, JSON.stringify(cleanPayload));
         
         const axios = require('axios');
-        const response = await axios.post(webhook.url, eventData, {
+        const response = await axios.post(webhook.url, cleanPayload, {
             timeout: 10000,
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json; charset=utf-8',
                 'User-Agent': 'WhatsApp-API-Webhook/1.0'
             }
         });
         
-        console.log(`✅ [${clientId}] Webhook enviado exitosamente. Status: ${response.status}`);
+        console.log(`[${clientId}] Webhook enviado exitosamente. Status: ${response.status}`);
         
     } catch (error) {
-        console.error(`❌ [${clientId}] Error enviando webhook:`, error.message);
+        console.error(`[${clientId}] Error enviando webhook:`, error.message);
         if (error.response) {
-            console.error(`📄 [${clientId}] Respuesta del servidor:`, error.response.data);
+            console.error(`[${clientId}] Respuesta del servidor:`, error.response.data);
+            console.error(`[${clientId}] Status code:`, error.response.status);
         }
     }
 }
