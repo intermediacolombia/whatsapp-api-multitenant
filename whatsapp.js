@@ -217,10 +217,10 @@ class WhatsAppConnection {
     }
 }
 
-/*async sendMessage(target, message) {
+async sendMessageWebHook(target, message) {
     if (!this.isConnected) throw new Error('WhatsApp no conectado');
 
-    // 🔥 si ya tiene @, usarlo tal cual
+    // si ya tiene @, usarlo tal cual
     const jid = target.includes('@')
         ? target
         : `${target.replace(/\D/g, '')}@s.whatsapp.net`;
@@ -234,7 +234,7 @@ class WhatsAppConnection {
             ? Number(result.messageTimestamp)
             : Date.now()
     };
-}*/
+}
 
 async sendMessage(phone, message) {
         if (!this.isConnected) throw new Error('WhatsApp no conectado');

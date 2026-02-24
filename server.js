@@ -321,12 +321,12 @@ async function ensureInitialized(clientId) {
          // Enviar webhook
         await sendWebhook(clientId, {
             event: 'message',
-            from: messageData.from,
-            message: messageData.message,
-            timestamp: messageData.timestamp,
-            messageId: messageData.messageId,
-            pushName: messageData.pushName,
-            client_id: clientId
+            jid: data.jid,           // 👈 ESTE FALTABA
+            from: data.from,
+            message: data.message,
+            timestamp: data.timestamp,
+            messageId: data.messageId,
+            pushName: data.pushName
         });
     };
     
