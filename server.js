@@ -316,19 +316,18 @@ async function ensureInitialized(clientId) {
     
     // ✨ NUEVO: Callback cuando se recibe un mensaje
     wa.onMessageReceived = async (messageData) => {
-        console.log(`📩 [${clientId}] Mensaje recibido:`, messageData);
-        
-         // Enviar webhook
-        await sendWebhook(clientId, {
-            event: 'message',
-            jid: data.jid,
-            from: data.from,
-            message: data.message,
-            timestamp: data.timestamp,
-            messageId: data.messageId,
-            pushName: data.pushName
-        });
-    };
+    console.log(`📩 [${clientId}] Mensaje recibido:`, messageData);
+
+    await sendWebhook(clientId, {
+        event: 'message',
+        jid: messageData.jid,
+        from: messageData.from,
+        message: messageData.message,
+        timestamp: messageData.timestamp,
+        messageId: messageData.messageId,
+        pushName: messageData.pushName
+    });
+};
     
     // ✨ NUEVO: Callback cuando el usuario cierra sesión
     wa.onLogout = () => {
