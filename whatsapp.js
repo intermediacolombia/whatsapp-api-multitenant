@@ -217,7 +217,7 @@ class WhatsAppConnection {
     }
 }
 
-async sendMessageWebHook(target, message) {
+/*async sendMessageWebHook(target, message) {
     if (!this.isConnected) throw new Error('WhatsApp no conectado');
 
     // si ya tiene @, usarlo tal cual
@@ -247,7 +247,25 @@ async sendMessage(phone, message) {
             messageId: result.key.id,
             timestamp: result.messageTimestamp ? Number(result.messageTimestamp) : Date.now()
         };
-    }
+    }*/
+
+        async sendMessage(target, message) {
+    if (!this.isConnected) throw new Error('WhatsApp no conectado');
+
+    const jid = target.includes('@')
+        ? target
+        : `${target.replace(/\D/g, '')}@s.whatsapp.net`;
+
+    const result = await this.sock.sendMessage(jid, { text: message });
+
+    return {
+        success: true,
+        messageId: result.key.id,
+        timestamp: result.messageTimestamp
+            ? Number(result.messageTimestamp)
+            : Date.now()
+    };
+}
 
     getQRImage() { return this.qrCodeImage; }
     getStatus() { return this.isConnected; }

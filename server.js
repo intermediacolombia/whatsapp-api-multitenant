@@ -321,7 +321,7 @@ async function ensureInitialized(clientId) {
          // Enviar webhook
         await sendWebhook(clientId, {
             event: 'message',
-            jid: data.jid,           // 👈 ESTE FALTABA
+            jid: data.jid,
             from: data.from,
             message: data.message,
             timestamp: data.timestamp,
