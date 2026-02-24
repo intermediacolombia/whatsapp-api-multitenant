@@ -253,18 +253,7 @@ async sendMessage(phone, message) {
             this.isConnected = false;
         }
     }
-async sendMessage(phone, message) {
-        if (!this.isConnected) throw new Error('WhatsApp no conectado');
-        
-        const jid = `${phone.replace(/[^0-9]/g, '')}@s.whatsapp.net`;
-        const result = await this.sock.sendMessage(jid, { text: message });
-        
-        return { 
-            success: true, 
-            messageId: result.key.id,
-            timestamp: result.messageTimestamp ? Number(result.messageTimestamp) : Date.now()
-        };
-    }
+
 
     getQRImage() { return this.qrCodeImage; }
     getStatus() { return this.isConnected; }
