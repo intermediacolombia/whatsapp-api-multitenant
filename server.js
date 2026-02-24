@@ -251,11 +251,17 @@ async function sendWebhook(clientId, eventData) {
         // ✅ CREAR PAYLOAD LIMPIO - PRESERVAR pushName
         const payload = {
             event: eventData.event || 'message',
-            from: eventData.from || '',
+
+            // IDENTIFICADOR REAL PARA RESPONDER
+            jid: eventData.jid || '',
+
+            // Número real si existe (puede ser null)
+            from: eventData.from || null,
+
             message: eventData.message || '',
             timestamp: eventData.timestamp || new Date().toISOString(),
             messageId: eventData.messageId || '',
-            pushName: eventData.pushName || null,  // ✅ Mantener tal cual viene
+            pushName: eventData.pushName || null,
             client_id: clientId
         };
         
