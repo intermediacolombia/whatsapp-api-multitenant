@@ -217,7 +217,7 @@ class WhatsAppConnection {
     }
 }
 
-async sendMessage(target, message) {
+/*async sendMessage(target, message) {
     if (!this.isConnected) throw new Error('WhatsApp no conectado');
 
     // 🔥 si ya tiene @, usarlo tal cual
@@ -234,9 +234,9 @@ async sendMessage(target, message) {
             ? Number(result.messageTimestamp)
             : Date.now()
     };
-}
+}*/
 
-/*async sendMessage(phone, message) {
+async sendMessage(phone, message) {
         if (!this.isConnected) throw new Error('WhatsApp no conectado');
         
         const jid = `${phone.replace(/[^0-9]/g, '')}@s.whatsapp.net`;
@@ -247,7 +247,7 @@ async sendMessage(target, message) {
             messageId: result.key.id,
             timestamp: result.messageTimestamp ? Number(result.messageTimestamp) : Date.now()
         };
-    }*/
+    }
 
     getQRImage() { return this.qrCodeImage; }
     getStatus() { return this.isConnected; }
