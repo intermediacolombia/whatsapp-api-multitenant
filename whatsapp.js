@@ -110,7 +110,54 @@ class WhatsAppConnection {
     });
 
     // Listener de mensajes recibidos
-        this.sock.ev.on('messages.upsert', async ({ messages }) => {
+            this.sock.ev.on('messages.upsert', async ({ messages }) => {
+            for (const msg of messages) {
+                if (msg.key.fromMe) continue;
+                if (msg.key.remoteJid === 'status@broadcast') continue;
+
+                const messageType = msg.message ? Object.keys(msg.message)[0] : null;
+                if (!messageType) continue;
+
+                // Obtener texto si existe
+                const messageText =
+                    msg.message?.conversation ||
+                    msg.message?.extendedTextMessage?.text ||
+                    msg.message?.imageMessage?.caption ||
+                    msg.message?.videoMessage?.caption ||
+                    '';
+
+                // Determinar tipo legible
+                let tipoMensaje = 'text';
+                if (messageType === 'imageMessage')            tipoMensaje = 'image';
+                else if (messageType === 'videoMessage')       tipoMensaje = 'video';
+                else if (messageType === 'audioMessage' || messageType === 'pttMessage') tipoMensaje = 'audio';
+                else if (messageType === 'documentMessage')    tipoMensaje = 'document';
+                else if (messageType === 'stickerMessage')     tipoMensaje = 'sticker';
+
+                const jid = msg.key.remoteJid;
+
+                let phoneNumber = null;
+                if (msg.key.remoteJidAlt) {
+                    phoneNumber = msg.key.remoteJidAlt.split('@')[0].replace(/\D/g, '');
+                }
+
+                console.log(`[${this.clientId}] Mensaje de ${jid} [${tipoMensaje}]: ${messageText || '(sin texto)'}`);
+
+                if (this.onMessageReceived) {
+                    this.onMessageReceived({
+                        from: phoneNumber,
+                        jid: jid,
+                        message: messageText,
+                        messageType: tipoMensaje,
+                        timestamp: new Date().toISOString(),
+                        messageId: msg.key.id,
+                        pushName: msg.pushName || null
+                    });
+                }
+            }
+        });
+
+        /*this.sock.ev.on('messages.upsert', async ({ messages }) => {
             for (const msg of messages) {
                 if (msg.key.fromMe) continue;
                 if (msg.key.remoteJid === 'status@broadcast') continue;
@@ -146,7 +193,7 @@ class WhatsAppConnection {
                     }
                 }
             }
-        });
+        });*/
     }
 
    
