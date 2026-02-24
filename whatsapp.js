@@ -114,40 +114,30 @@ class WhatsAppConnection {
             for (const msg of messages) {
                 if (msg.key.fromMe) continue;
                 if (msg.key.remoteJid === 'status@broadcast') continue;
-                
+
                 const messageType = msg.message ? Object.keys(msg.message)[0] : null;
-                
+
                 if (messageType === 'conversation' || messageType === 'extendedTextMessage') {
-                    const messageText = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
-                    
-                    // ✅ OBTENER NÚMERO REAL desde remoteJidAlt
+
+                    const messageText =
+                        msg.message.conversation ||
+                        msg.message.extendedTextMessage?.text ||
+                        '';
+
+                    const jid = msg.key.remoteJid; // 🔥 SIEMPRE usar este para responder
+
                     let phoneNumber = null;
-                    let jid = msg.key.remoteJid;
-                    
-                    // Prioridad 1: remoteJidAlt (número real)
+
                     if (msg.key.remoteJidAlt) {
                         phoneNumber = msg.key.remoteJidAlt.split('@')[0].replace(/\D/g, '');
-                        console.log(`[${this.clientId}] Número real encontrado: ${phoneNumber}`);
-                    } 
-                    // Prioridad 2: remoteJid normal
-                    else {
-                        phoneNumber = jid.split('@')[0].replace(/\D/g, '');
-                        console.log(`[${this.clientId}] Usando JID: ${phoneNumber}`);
                     }
 
-                    // Si el número tiene más de 15 dígitos es un ID interno de WhatsApp Business
-                    if (phoneNumber.length > 15) {
-                        console.log(`[${this.clientId}] ID interno detectado (${phoneNumber}), descartando mensaje`);
-                        continue;
-                    }
+                    console.log(`[${this.clientId}] Mensaje de ${jid}: ${messageText}`);
 
-                    console.log(`[${this.clientId}] Mensaje de ${phoneNumber} (${msg.pushName || 'Sin nombre'}): ${messageText}`);
-
-                    // Disparar webhook con número real
-                    if (this.onMessageReceived && phoneNumber.length >= 10 && phoneNumber.length <= 15) {
+                    if (this.onMessageReceived) {
                         this.onMessageReceived({
-                            from: phoneNumber,
-                            jid: msg.key.remoteJid,
+                            from: phoneNumber,  
+                            jid: jid,            
                             message: messageText,
                             timestamp: new Date().toISOString(),
                             messageId: msg.key.id,
@@ -230,23 +220,19 @@ class WhatsAppConnection {
 async sendMessage(target, message) {
     if (!this.isConnected) throw new Error('WhatsApp no conectado');
 
-    let jid;
-
-    if (target.includes('@')) {
-        // Ya es JID completo (grupo o ID interno)
-        jid = target;
-    } else {
-        // Es número normal
-        const clean = target.replace(/\D/g, '');
-        jid = `${clean}@s.whatsapp.net`;
-    }
+    // 🔥 si ya tiene @, usarlo tal cual
+    const jid = target.includes('@')
+        ? target
+        : `${target.replace(/\D/g, '')}@s.whatsapp.net`;
 
     const result = await this.sock.sendMessage(jid, { text: message });
 
-    return { 
-        success: true, 
+    return {
+        success: true,
         messageId: result.key.id,
-        timestamp: result.messageTimestamp ? Number(result.messageTimestamp) : Date.now()
+        timestamp: result.messageTimestamp
+            ? Number(result.messageTimestamp)
+            : Date.now()
     };
 }
 
