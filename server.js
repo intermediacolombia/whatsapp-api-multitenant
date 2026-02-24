@@ -814,117 +814,6 @@ app.post('/api/send', authenticateAPI, async (req, res) => {
     const startTime = Date.now();
     
     try {
-        const { phonenumber, phone, jid, text, message, url, filename, caption } = req.body;
-        const clientId = req.client.client_id;
-        
-        // 👇 PRIORIDAD: jid > phonenumber > phone
-        const target = jid || phonenumber || phone;
-        const messageText = text || message;
-        
-        if (!target || !messageText) {
-            await logMessage(clientId, {
-                phoneNumber: target || 'unknown',
-                messageType: 'text',
-                messageText: messageText,
-                status: 'failed',
-                errorMessage: 'Faltan parámetros',
-                responseTime: Date.now() - startTime
-            });
-            
-            return res.status(400).json({
-                success: false,
-                error: 'Número/JID y mensaje son requeridos'
-            });
-        }
-        
-        const wa = await ensureInitialized(clientId);
-        
-        if (!wa.getStatus()) {
-            await logMessage(clientId, {
-                phoneNumber: target,
-                messageType: url ? 'file' : 'text',
-                messageText: messageText,
-                fileUrl: url,
-                caption: caption,
-                status: 'failed',
-                errorMessage: 'WhatsApp no conectado',
-                responseTime: Date.now() - startTime
-            });
-            
-            return res.status(503).json({
-                success: false,
-                error: 'WhatsApp no está conectado'
-            });
-        }
-        
-        let result;
-        const messageType = url ? 'file' : 'text';
-        
-        try {
-
-            if (url) {
-                const fileNameToUse = filename || url.split('/').pop().split('?')[0] || 'documento.pdf';
-                result = await wa.sendFile(target, url, fileNameToUse, caption || messageText);
-            } else {
-                result = await wa.sendMessage(target, messageText);
-            }
-            
-            const responseTime = Date.now() - startTime;
-            
-            await logMessage(clientId, {
-                phoneNumber: target,
-                messageType: messageType,
-                messageText: messageText,
-                fileUrl: url || null,
-                caption: caption || null,
-                status: 'sent',
-                errorMessage: null,
-                messageId: result.messageId,
-                timestampSent: result.timestamp,
-                responseTime: responseTime
-            });
-            
-            res.json({
-                success: true,
-                message: 'Mensaje enviado',
-                data: {
-                    target: target,
-                    messageId: result.messageId,
-                    timestamp: result.timestamp,
-                    responseTime: `${responseTime}ms`
-                }
-            });
-            
-        } catch (sendError) {
-            const responseTime = Date.now() - startTime;
-            
-            await logMessage(clientId, {
-                phoneNumber: target,
-                messageType: messageType,
-                messageText: messageText,
-                fileUrl: url || null,
-                caption: caption || null,
-                status: 'failed',
-                errorMessage: sendError.message,
-                responseTime: responseTime
-            });
-            
-            throw sendError;
-        }
-        
-    } catch (error) {
-        console.error(`❌ Error:`, error.message);
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-/*app.post('/api/send', authenticateAPI, async (req, res) => {
-    const startTime = Date.now();
-    
-    try {
         const { phonenumber, phone, text, message, url, filename, caption } = req.body;
         const clientId = req.client.client_id;
         
@@ -1035,7 +924,7 @@ app.post('/api/send', authenticateAPI, async (req, res) => {
 app.post('/v2/sendMessage', authenticateAPI, (req, res) => {
     req.url = '/api/send';
     app.handle(req, res);
-});*/
+});
 
 // ========== NUEVA RUTA: Ver historial de mensajes ==========
 
