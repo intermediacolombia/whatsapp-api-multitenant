@@ -259,6 +259,7 @@ async function sendWebhook(clientId, eventData) {
             from: eventData.from || null,
 
             message: eventData.message || '',
+            messageType: eventData.messageType || 'text',
             timestamp: eventData.timestamp || new Date().toISOString(),
             messageId: eventData.messageId || '',
             pushName: eventData.pushName || null,
