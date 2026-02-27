@@ -324,6 +324,7 @@ async function ensureInitialized(clientId) {
         jid: messageData.jid,
         from: messageData.from,
         message: messageData.message,
+        messageType: messageData.messageType,
         timestamp: messageData.timestamp,
         messageId: messageData.messageId,
         pushName: messageData.pushName
