@@ -886,6 +886,10 @@
                 <i class="fa-solid fa-circle-nodes"></i>
                 <span>Webhook</span>
             </a>
+            <a href="#" class="nav-item" onclick="showSection('settings')" id="nav-settings">
+                <i class="fa-solid fa-gear"></i>
+                <span>Configuración</span>
+            </a>
             <a href="https://documenter.getpostman.com/view/34383688/2sBXcGCe5J" class="nav-item" id="nav-docs" target="_blank">
                 <i class="fa-solid fa-book"></i>
                 <span>Documentación Completa</span>
@@ -1241,7 +1245,45 @@ curl_close($ch);
                 </div>
             </div>
 
-
+            <div id="section-settings" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fa-solid fa-gear"></i>
+                            <h3>Configuración</h3>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>
+                                <i class="fa-solid fa-clock"></i>
+                                Zona Horaria
+                            </label>
+                            <select id="timezone-select" style="width:100%; padding:14px 18px; border:2px solid #e2e8f0; border-radius:12px; font-size:15px; background:#f7fafc; color:#2d3748;">
+                                <option value="America/Bogota">Colombia (America/Bogota)</option>
+                                <option value="America/Mexico_City">México (America/Mexico_City)</option>
+                                <option value="America/Lima">Perú (America/Lima)</option>
+                                <option value="America/Santiago">Chile (America/Santiago)</option>
+                                <option value="America/Argentina/Buenos_Aires">Argentina (America/Buenos_Aires)</option>
+                                <option value="America/Caracas">Venezuela (America/Caracas)</option>
+                                <option value="America/New_York">USA Este (America/New_York)</option>
+                                <option value="America/Chicago">USA Central (America/Chicago)</option>
+                                <option value="America/Los_Angeles">USA Oeste (America/Los_Angeles)</option>
+                                <option value="Europe/Madrid">España (Europe/Madrid)</option>
+                                <option value="UTC">UTC</option>
+                            </select>
+                            <p style="font-size:13px; color:#718096; margin-top:8px;">
+                                <i class="fa-solid fa-info-circle"></i>
+                                Las fechas del historial de mensajes se mostrarán en esta zona horaria.
+                            </p>
+                        </div>
+                        <button onclick="saveTimezone()" class="btn btn-primary" style="width:auto;">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            Guardar
+                        </button>
+                    </div>
+                </div>
+            </div>
 
         </div>
     </div>
@@ -1683,12 +1725,21 @@ curl_close($ch);
         // Formatear fecha
         function formatDate(dateString) {
             const date = new Date(dateString);
+            const tz = clientData.timezone || 'America/Bogota';
             return date.toLocaleString('es-CO', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+                timeZone: tz,
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        }
+
+        function formatDateFull(dateString) {
+            const date = new Date(dateString);
+            const tz = clientData.timezone || 'America/Bogota';
+            return date.toLocaleString('es-CO', {
+                timeZone: tz,
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
             });
         }
         
@@ -1800,6 +1851,12 @@ curl_close($ch);
                 document.getElementById('page-title').textContent = 'Webhook';
                 document.getElementById('page-subtitle').textContent = 'Configura tu URL para recibir mensajes en tiempo real';
                 loadWebhook();
+            } else if (section === 'settings') {
+                document.getElementById('section-settings').style.display = 'block';
+                document.getElementById('nav-settings').classList.add('active');
+                document.getElementById('page-title').textContent = 'Configuración';
+                document.getElementById('page-subtitle').textContent = 'Personaliza tu cuenta';
+                loadSettings();
             }
         }
 
@@ -1864,6 +1921,41 @@ async function deleteWebhook() {
     }
 }
         
+
+async function loadSettings() {
+    try {
+        const res = await fetch('/api/me', {
+            headers: { 'X-Session-Token': sessionToken }
+        });
+        const data = await res.json();
+        if (data.client.timezone) {
+            document.getElementById('timezone-select').value = data.client.timezone;
+        }
+    } catch(e) {}
+}
+
+async function saveTimezone() {
+    const timezone = document.getElementById('timezone-select').value;
+    try {
+        const res = await fetch('/api/my-settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Session-Token': sessionToken
+            },
+            body: JSON.stringify({ timezone })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showAlert('Zona horaria guardada correctamente', 'success');
+        } else {
+            showAlert(data.error || 'Error al guardar', 'error');
+        }
+    } catch(e) {
+        showAlert('Error de conexión', 'error');
+    }
+}
+
         // Copiar API Key
         function copyApiKey() {
             const apiKey = document.getElementById('api-key').textContent;

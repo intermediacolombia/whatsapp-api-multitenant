@@ -1708,6 +1708,21 @@ function startWhatsAppKeepalive() {
     }, 24 * 60 * 60 * 1000); // 24 horas
 }
 
+app.post('/api/my-settings', authenticateSession, async (req, res) => {
+    try {
+        const { timezone } = req.body;
+        if (!timezone) return res.status(400).json({ success: false, error: 'Timezone requerido' });
+        
+        await pool.execute(
+            'UPDATE clients SET timezone = ? WHERE client_id = ?',
+            [timezone, req.client.client_id]
+        );
+        
+        res.json({ success: true, message: 'Configuración guardada' });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 
 
 // ========== INICIAR SERVIDOR ==========
