@@ -1437,12 +1437,9 @@ curl_close($ch);
                 
                 const data = await response.json();
                 clientData = data.client;
+                // Garantizar que timezone siempre esté definido
+                if (!clientData.timezone) clientData.timezone = 'America/Bogota';
                 
-                // Si el servidor no devuelve timezone, usar Bogotá por defecto
-                if (!clientData.timezone) {
-                    clientData.timezone = 'America/Bogota';
-                }
-
                 document.getElementById('user-name').textContent = clientData.name;
                 document.getElementById('user-avatar').textContent = clientData.name.charAt(0).toUpperCase();
                 document.getElementById('api-key').textContent = clientData.api_key;
@@ -1634,6 +1631,13 @@ curl_close($ch);
                 const data = await response.json();
                 
                 if (data.success) {
+                    // DEBUG TEMPORAL: ver formato exacto de fecha
+                    if (data.messages.length > 0) {
+                        console.log('🕐 fecha raw:', JSON.stringify(data.messages[0].created_at));
+                        console.log('🕐 timezone:', clientData && clientData.timezone);
+                        console.log('🕐 parseMysqlDate ISO:', parseMysqlDate(data.messages[0].created_at).toISOString());
+                        console.log('🕐 formatDate:', formatDate(data.messages[0].created_at));
+                    }
                     // Destruir tabla existente
                     if (messagesTable) {
                         messagesTable.destroy();
@@ -1730,13 +1734,13 @@ curl_close($ch);
         // Formatear fecha
         function parseMysqlDate(str) {
             if (!str) return new Date();
-            // MySQL devuelve "2026-03-07 07:22:06" sin zona — lo tratamos como UTC
-            const clean = str.toString()
-                .replace(/\.\d+Z?$/, '')  // quita milisegundos
-                .replace(' ', 'T')         // espacio → T
-                .replace(/Z?$/, 'Z');      // fuerza UTC
+            const s = str.toString();
+            // Si ya tiene T y Z es ISO — usarlo directo
+            if (s.includes('T') && s.endsWith('Z')) return new Date(s);
+            // MySQL "2026-03-07 07:22:06" o "2026-03-07 07:22:06.000" → tratar como UTC
+            const clean = s.replace(' ', 'T').replace(/\.\d+$/, '') + 'Z';
             const d = new Date(clean);
-            return isNaN(d.getTime()) ? new Date(str) : d;
+            return isNaN(d.getTime()) ? new Date(s) : d;
         }
 
         function formatDate(dateString) {
@@ -1818,7 +1822,7 @@ curl_close($ch);
             document.getElementById('section-docs').style.display = 'none';
             document.getElementById('section-webhook').style.display = 'none';
             document.getElementById('section-settings').style.display = 'none';
-            
+
             document.getElementById('nav-dashboard').classList.remove('active');
             document.getElementById('nav-send').classList.remove('active');
             document.getElementById('nav-history').classList.remove('active');
