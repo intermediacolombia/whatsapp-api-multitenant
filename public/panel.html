@@ -1437,8 +1437,6 @@ curl_close($ch);
                 
                 const data = await response.json();
                 clientData = data.client;
-                // Garantizar que timezone siempre esté definido
-                if (!clientData.timezone) clientData.timezone = 'America/Bogota';
                 
                 document.getElementById('user-name').textContent = clientData.name;
                 document.getElementById('user-avatar').textContent = clientData.name.charAt(0).toUpperCase();
@@ -1631,13 +1629,6 @@ curl_close($ch);
                 const data = await response.json();
                 
                 if (data.success) {
-                    // DEBUG TEMPORAL: ver formato exacto de fecha
-                    if (data.messages.length > 0) {
-                        console.log('🕐 fecha raw:', JSON.stringify(data.messages[0].created_at));
-                        console.log('🕐 timezone:', clientData && clientData.timezone);
-                        console.log('🕐 parseMysqlDate ISO:', parseMysqlDate(data.messages[0].created_at).toISOString());
-                        console.log('🕐 formatDate:', formatDate(data.messages[0].created_at));
-                    }
                     // Destruir tabla existente
                     if (messagesTable) {
                         messagesTable.destroy();
@@ -1734,13 +1725,12 @@ curl_close($ch);
         // Formatear fecha
         function parseMysqlDate(str) {
             if (!str) return new Date();
-            const s = str.toString();
-            // Si ya tiene T y Z es ISO — usarlo directo
-            if (s.includes('T') && s.endsWith('Z')) return new Date(s);
-            // MySQL "2026-03-07 07:22:06" o "2026-03-07 07:22:06.000" → tratar como UTC
-            const clean = s.replace(' ', 'T').replace(/\.\d+$/, '') + 'Z';
+            const clean = str.toString()
+                .replace(/\.\d+Z?$/, '')
+                .replace(' ', 'T')
+                .replace(/Z?$/, 'Z');
             const d = new Date(clean);
-            return isNaN(d.getTime()) ? new Date(s) : d;
+            return isNaN(d.getTime()) ? new Date(str) : d;
         }
 
         function formatDate(dateString) {
@@ -1822,7 +1812,7 @@ curl_close($ch);
             document.getElementById('section-docs').style.display = 'none';
             document.getElementById('section-webhook').style.display = 'none';
             document.getElementById('section-settings').style.display = 'none';
-
+            
             document.getElementById('nav-dashboard').classList.remove('active');
             document.getElementById('nav-send').classList.remove('active');
             document.getElementById('nav-history').classList.remove('active');
@@ -1956,7 +1946,14 @@ async function saveTimezone() {
         });
         const data = await res.json();
         if (data.success) {
-            showAlert('Zona horaria guardada correctamente', 'success');
+            // Actualizar clientData en memoria para que formatDate use la nueva zona
+            clientData.timezone = timezone;
+            // Si el historial ya estaba cargado, recargarlo con la nueva zona
+            if (window.messagesData) {
+                window.messagesData = null;
+                loadMessages();
+            }
+            showAlert('Zona horaria guardada. Las fechas se actualizaron.', 'success');
         } else {
             showAlert(data.error || 'Error al guardar', 'error');
         }
