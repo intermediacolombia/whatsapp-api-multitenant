@@ -55,7 +55,8 @@ const dbConfig = {
     database: process.env.DB_NAME || 'whatsapp_api',
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    timezone: "Z"  // Fuerza UTC — el frontend convierte a la zona del cliente
 };
 
 const pool = mysql.createPool(dbConfig);
@@ -770,7 +771,7 @@ app.get('/api/me', authenticateSession, async (req, res) => {
             api_key: req.client.api_key,
             phone_number: req.client.phone_number,
             whatsapp_connected: req.client.whatsapp_connected,
-            timezone: req.client.timezone || 'America/Bogota'
+            timezone: req.client.timezone || "America/Bogota"
         }
     });
 });
@@ -1643,24 +1644,6 @@ app.get('/api/status', authenticateAPI, async (req, res) => {
 
 
 
-
-// ========== CONFIGURACIÓN DEL CLIENTE ==========
-
-app.post('/api/my-settings', authenticateSession, async (req, res) => {
-    try {
-        const { timezone } = req.body;
-        if (!timezone) return res.status(400).json({ success: false, error: 'Timezone requerido' });
-
-        await pool.execute(
-            'UPDATE clients SET timezone = ? WHERE client_id = ?',
-            [timezone, req.client.client_id]
-        );
-
-        res.json({ success: true, message: 'Configuración guardada' });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
 
 // ========== ERROR 404 ==========
 
