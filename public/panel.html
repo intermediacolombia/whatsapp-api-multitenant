@@ -1723,9 +1723,17 @@ curl_close($ch);
         }
         
         // Formatear fecha
+        function parseMysqlDate(dateString) {
+            // MySQL devuelve '2026-03-07 07:22:06' sin zona horaria.
+            // Hay que interpretarlo como UTC para luego convertirlo correctamente.
+            if (!dateString) return new Date();
+            // Reemplaza espacio por T y agrega Z para forzar UTC
+            return new Date(dateString.toString().replace(' ', 'T') + 'Z');
+        }
+
         function formatDate(dateString) {
-            const date = new Date(dateString);
-            const tz = clientData.timezone || 'America/Bogota';
+            const date = parseMysqlDate(dateString);
+            const tz = (clientData && clientData.timezone) ? clientData.timezone : 'America/Bogota';
             return date.toLocaleString('es-CO', {
                 timeZone: tz,
                 day: '2-digit', month: '2-digit', year: 'numeric',
@@ -1734,8 +1742,8 @@ curl_close($ch);
         }
 
         function formatDateFull(dateString) {
-            const date = new Date(dateString);
-            const tz = clientData.timezone || 'America/Bogota';
+            const date = parseMysqlDate(dateString);
+            const tz = (clientData && clientData.timezone) ? clientData.timezone : 'America/Bogota';
             return date.toLocaleString('es-CO', {
                 timeZone: tz,
                 weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -1743,18 +1751,7 @@ curl_close($ch);
             });
         }
         
-        function formatDateFull(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleString('es-CO', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-        }
+
         
         // Truncar texto
         function truncate(str, length) {
@@ -1814,12 +1811,14 @@ curl_close($ch);
             document.getElementById('section-history').style.display = 'none';
             document.getElementById('section-docs').style.display = 'none';
             document.getElementById('section-webhook').style.display = 'none';
+            document.getElementById('section-settings').style.display = 'none';
             
             document.getElementById('nav-dashboard').classList.remove('active');
             document.getElementById('nav-send').classList.remove('active');
             document.getElementById('nav-history').classList.remove('active');
             document.getElementById('nav-docs').classList.remove('active');
             document.getElementById('nav-webhook').classList.remove('active');
+            document.getElementById('nav-settings').classList.remove('active');
             
             if (section === 'dashboard') {
                 document.getElementById('section-dashboard').style.display = 'block';
