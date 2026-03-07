@@ -1723,12 +1723,16 @@ curl_close($ch);
         }
         
         // Formatear fecha
-        function parseMysqlDate(dateString) {
-            // MySQL devuelve '2026-03-07 07:22:06' sin zona horaria.
-            // Hay que interpretarlo como UTC para luego convertirlo correctamente.
-            if (!dateString) return new Date();
-            // Reemplaza espacio por T y agrega Z para forzar UTC
-            return new Date(dateString.toString().replace(' ', 'T') + 'Z');
+        function parseMysqlDate(str) {
+            if (!str) return new Date();
+            // MySQL devuelve "2026-03-07 07:22:06" o "2026-03-07T07:22:06.000Z"
+            // Normalizar: quitar milisegundos, reemplazar espacio por T, agregar Z
+            const clean = str.toString()
+                .replace(/\.\d+Z?$/, '')   // quita .000Z o .000
+                .replace(' ', 'T')          // espacio → T
+                .replace(/Z?$/, 'Z');       // fuerza UTC
+            const d = new Date(clean);
+            return isNaN(d.getTime()) ? new Date(str) : d;
         }
 
         function formatDate(dateString) {
@@ -1750,8 +1754,6 @@ curl_close($ch);
                 hour: '2-digit', minute: '2-digit', second: '2-digit'
             });
         }
-        
-
         
         // Truncar texto
         function truncate(str, length) {
